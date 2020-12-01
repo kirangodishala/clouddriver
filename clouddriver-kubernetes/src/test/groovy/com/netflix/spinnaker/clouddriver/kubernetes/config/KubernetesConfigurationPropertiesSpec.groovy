@@ -126,11 +126,11 @@ class KubernetesConfigurationPropertiesSpec extends Specification {
   void "configServer functionality works"() {
     when:
     def ACC_NAME = "k8s-acc-0"
-    def KUBECONFIG_CONFIG_SERVER = "configServer:dev.config"
+    def KUBECONFIG_CONFIG_SERVER = "configserver:dev.config"
     def KUBECONFIG = "/tmp/config/dev.config"
     def map = new ImmutableMap.Builder()
       .put("kubernetes.accounts[0].name", ACC_NAME)
-      .put("kubernetes.accounts[0].kubeconfigFile", KUBECONFIG)
+      .put("kubernetes.accounts[0].kubeconfigFile", KUBECONFIG_CONFIG_SERVER)
       .build()
     def propertiesMapExtractor = Mock(KubernetesPropertiesMapExtractor)
     propertiesMapExtractor.getPropertiesMap() >> map

@@ -86,6 +86,14 @@ public class KubernetesConfigurationProperties {
 
   public KubernetesConfigurationProperties() {}
 
+  /**
+   * For larger number of Kubernetes accounts, SpringBoot based properties binding is taking tens of
+   * minutes, hence this custom constructor for KubernetesConfigurationProperties is needed. Spring
+   * Cloud Config's BootstrapPropertySource stores the properties in a canonical form so a regex
+   * pattern is used to extract the property keys.
+   *
+   * @param propertiesMapExtractor This provides a map of Kubernetes account properties
+   */
   public KubernetesConfigurationProperties(PropertiesMapExtractor propertiesMapExtractor) {
     Map<String, Object> originalPropertiesMap = propertiesMapExtractor.getPropertiesMap();
     Map<String, Object> accountPropertiesMap = null;
@@ -148,7 +156,7 @@ public class KubernetesConfigurationProperties {
               entry.getValue()); // match.group(6) is a property of CustomKubernetesResource
         } else {
           if (propertyName.equals("kubeconfigFile")) {
-            if (((String) value).startsWith("configServer:")) {
+            if (((String) value).startsWith("configserver:")) {
               value = propertiesMapExtractor.resolveConfigServerFilePath((String) value);
             }
           }
@@ -156,7 +164,7 @@ public class KubernetesConfigurationProperties {
               entry.getKey().substring(entry.getKey().indexOf(propertyName)), value);
         }
       } else {
-        log.debug("Ignoring the unexpected property:" + entry.getKey());
+        log.debug("Ignoring the properties having blank values. Key:" + entry.getKey());
       }
     }
     // setting last account properties
