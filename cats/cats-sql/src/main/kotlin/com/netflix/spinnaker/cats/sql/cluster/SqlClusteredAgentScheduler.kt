@@ -16,12 +16,7 @@
 package com.netflix.spinnaker.cats.sql.cluster
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder
-import com.netflix.spinnaker.cats.agent.Agent
-import com.netflix.spinnaker.cats.agent.AgentExecution
-import com.netflix.spinnaker.cats.agent.AgentLock
-import com.netflix.spinnaker.cats.agent.AgentScheduler
-import com.netflix.spinnaker.cats.agent.AgentSchedulerAware
-import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
+import com.netflix.spinnaker.cats.agent.*
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider
 import com.netflix.spinnaker.cats.cluster.NodeIdentity
 import com.netflix.spinnaker.cats.cluster.NodeStatusProvider
@@ -30,19 +25,16 @@ import com.netflix.spinnaker.cats.sql.SqlUtil
 import com.netflix.spinnaker.config.ConnectionPools
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.netflix.spinnaker.kork.sql.routing.withPool
-import java.sql.SQLException
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.TimeUnit
-import java.util.regex.Pattern
-import java.util.regex.Pattern.CASE_INSENSITIVE
 import org.jooq.DSLContext
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.table
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
+import java.sql.SQLException
+import java.util.concurrent.*
+import java.util.regex.Pattern
+import java.util.regex.Pattern.CASE_INSENSITIVE
+import kotlin.math.abs
 
 /**
  * IMPORTANT: Using SQL for locking isn't a good idea. By enabling this scheduler, you'll be adding a fair amount of
@@ -66,7 +58,8 @@ class SqlClusteredAgentScheduler(
   ),
   lockPollingScheduler: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor(
     ThreadFactoryBuilder().setNameFormat(SqlClusteredAgentScheduler::class.java.simpleName + "-%d").build()
-  )
+  ),
+  private val shardingFilter: ShardingFilter
 ) : CatsModuleAware(), AgentScheduler<AgentLock>, Runnable {
 
   private val log = LoggerFactory.getLogger(javaClass)
@@ -76,6 +69,12 @@ class SqlClusteredAgentScheduler(
   private val enabledAgents: Pattern
 
   private val referenceTable = "cats_agent_locks"
+  private val replicasReferenceTable = "caching_replicas"
+  private val replicasTable = if (tableNamespace.isNullOrBlank()) {
+    replicasReferenceTable
+  } else {
+    "${replicasReferenceTable}_$tableNamespace"
+  }
   private val lockTable = if (tableNamespace.isNullOrBlank()) {
     referenceTable
   } else {
@@ -85,10 +84,10 @@ class SqlClusteredAgentScheduler(
   init {
     if (!tableNamespace.isNullOrBlank()) {
       withPool(POOL_NAME) {
+        SqlUtil.createTableLike(jooq, replicasTable, replicasReferenceTable)
         SqlUtil.createTableLike(jooq, lockTable, referenceTable)
       }
     }
-
     val lockInterval = agentLockAcquisitionIntervalSeconds ?: 1L
     lockPollingScheduler.scheduleAtFixedRate(this, 0, lockInterval, TimeUnit.SECONDS)
     enabledAgents = Pattern.compile(enabledAgentPattern, CASE_INSENSITIVE)
@@ -102,7 +101,9 @@ class SqlClusteredAgentScheduler(
     if (agent is AgentSchedulerAware) {
       agent.agentScheduler = this
     }
-    agents[agent.agentType] = AgentExecutionAction(agent, agentExecution, executionInstrumentation)
+    if(shardingFilter.filter(agent)) {
+      agents[agent.agentType] = AgentExecutionAction(agent, agentExecution, executionInstrumentation)
+    }
   }
 
   override fun unschedule(agent: Agent) {
@@ -228,6 +229,8 @@ class SqlClusteredAgentScheduler(
 
     return trimmedCandidates
   }
+
+
 
   private fun tryAcquireSingle(agentType: String, now: Long, timeout: Long): Boolean {
     try {
