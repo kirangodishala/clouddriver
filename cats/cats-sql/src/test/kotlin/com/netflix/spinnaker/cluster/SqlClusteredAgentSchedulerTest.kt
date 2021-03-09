@@ -22,6 +22,7 @@ import com.netflix.spinnaker.cats.agent.AgentExecution
 import com.netflix.spinnaker.cats.cluster.AgentIntervalProvider
 import com.netflix.spinnaker.cats.cluster.NodeIdentity
 import com.netflix.spinnaker.cats.cluster.NodeStatusProvider
+import com.netflix.spinnaker.cats.sql.cluster.NoopShardingFilter
 import com.netflix.spinnaker.cats.sql.cluster.SqlClusteredAgentScheduler
 import com.netflix.spinnaker.kork.dynamicconfig.DynamicConfigService
 import com.nhaarman.mockito_kotlin.any
@@ -93,18 +94,20 @@ class SqlClusteredAgentSchedulerTest : JUnit5Minutests {
     val agentExecutionPool: ExecutorService = mock()
     val lockPollingScheduler: ScheduledExecutorService = mock()
     val interval = AgentIntervalProvider.Interval(30L, 30L)
+    val shardingFilter = NoopShardingFilter()
     val sqlClusteredAgentScheduler = SqlClusteredAgentScheduler(
-      jooq,
-      nodeIdentity,
-      intervalProvider,
-      nodeStatusProvider,
-      dynamicConfigService,
-      enabledAgentPattern,
-      disabledAgentsConfig,
-      agentLockInterval,
-      tableNamespace,
-      agentExecutionPool,
-      lockPollingScheduler
+        jooq,
+        nodeIdentity,
+        intervalProvider,
+        nodeStatusProvider,
+        dynamicConfigService,
+        enabledAgentPattern,
+        disabledAgentsConfig,
+        agentLockInterval,
+        tableNamespace,
+        agentExecutionPool,
+        lockPollingScheduler,
+        shardingFilter
     )
 
     init {
