@@ -19,7 +19,6 @@ package com.netflix.spinnaker.cats.sql.cluster
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.netflix.spinnaker.cats.agent.Agent
-import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.cluster.NodeIdentity
 import com.netflix.spinnaker.cats.sql.SqlUtil
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
@@ -154,8 +153,7 @@ class SqlCachingPodsObserver (
   }
 
   private fun getAccountName(agentType: String): String{
-    log.info("#### accountName: {}", agentType.substring(0,agentType.indexOf('/')))
-    return agentType.substring(0,agentType.indexOf('/'))
+    return if(agentType.contains("/")) agentType.substring(0,agentType.indexOf('/')) else agentType
   }
 
   override fun filter(agent: Agent) : Boolean{
@@ -190,6 +188,8 @@ class SqlCachingPodsObserver (
     }
 
     if (counter == 1 || abs(getAccountName(agent.agentType).hashCode() % counter) == index) {
+      log.info("pod-count : $counter, index: $index, abs : " +
+        "${abs(getAccountName(agent.agentType).hashCode() % counter)}")
       return true
     }
     log.info("${agent.agentType} is skipped. index: $index, replica count: $counter")
