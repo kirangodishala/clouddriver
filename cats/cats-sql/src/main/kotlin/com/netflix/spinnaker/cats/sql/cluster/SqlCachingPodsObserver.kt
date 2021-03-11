@@ -19,7 +19,6 @@ package com.netflix.spinnaker.cats.sql.cluster
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.netflix.spinnaker.cats.agent.Agent
-import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.cluster.NodeIdentity
 import com.netflix.spinnaker.cats.sql.SqlUtil
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
@@ -46,6 +45,8 @@ class SqlCachingPodsObserver (
   )
 ) : ShardingFilter, Runnable{
   private val log = LoggerFactory.getLogger(javaClass)
+  private val POD_ID = "pod_id"
+  private val LAST_HEARTBEAT_TIME = "last_heartbeat_time"
 
   companion object {
     private val POOL_NAME = ConnectionPools.CACHE_WRITER.value
@@ -89,29 +90,27 @@ class SqlCachingPodsObserver (
         val currentPodRecord = jooq.select()
           .from(table(replicasTable))
           .where(
-            DSL.field("pod_name").eq(nodeIdentity.nodeIdentity))
+            DSL.field(POD_ID).eq(nodeIdentity.nodeIdentity))
           .fetch()
           .intoResultSet()
         // insert heartbeat
         if (!currentPodRecord.next()) {
           jooq.insertInto(table(replicasTable))
             .columns(
-              DSL.field("pod_name"),
-              DSL.field("last_heartbeat_time")
+              DSL.field(POD_ID),
+              DSL.field(LAST_HEARTBEAT_TIME)
             )
             .values(
               nodeIdentity.nodeIdentity,
               System.currentTimeMillis() + newTtl
             )
             .execute()
-          log.info("Heartbeat record created for {}", nodeIdentity.nodeIdentity)
         } else {
           //update heartbeat
           jooq.update(table(replicasTable))
-            .set(DSL.field("last_heartbeat_time"), System.currentTimeMillis() + newTtl)
-            .where(DSL.field("pod_name").eq(nodeIdentity.nodeIdentity))
+            .set(DSL.field(LAST_HEARTBEAT_TIME), System.currentTimeMillis() + newTtl)
+            .where(DSL.field(POD_ID).eq(nodeIdentity.nodeIdentity))
             .execute()
-          log.info("Heartbeat updated for {}", nodeIdentity.nodeIdentity)
         }
 
       }
@@ -131,18 +130,18 @@ class SqlCachingPodsObserver (
           .intoResultSet()
         val now = System.currentTimeMillis()
         while (existingReplicas.next()) {
-          val expiry = existingReplicas.getLong("last_heartbeat_time")
+          val expiry = existingReplicas.getLong(LAST_HEARTBEAT_TIME)
           if (now > expiry) {
             try {
               jooq.deleteFrom(table(replicasTable))
                 .where(
-                  DSL.field("pod_name").eq(existingReplicas.getString("pod_name"))
-                    .and(DSL.field("last_heartbeat_time").eq(expiry))
+                  DSL.field(POD_ID).eq(existingReplicas.getString(POD_ID))
+                    .and(DSL.field(LAST_HEARTBEAT_TIME).eq(expiry))
                 )
                 .execute()
             } catch (e: SQLException) {
               log.warn(
-                "Failed deleting replica entry ${existingReplicas.getString("pod_name")} with expiry " +
+                "Failed deleting replica entry ${existingReplicas.getString(POD_ID)} with expiry " +
                   expiry, e )
             }
           }
@@ -154,8 +153,7 @@ class SqlCachingPodsObserver (
   }
 
   private fun getAccountName(agentType: String): String{
-    log.info("#### accountName: {}", agentType.substring(0,agentType.indexOf('/')))
-    return agentType.substring(0,agentType.indexOf('/'))
+    return if(agentType.contains('/')) agentType.substring(0,agentType.indexOf('/')) else agentType
   }
 
   override fun filter(agent: Agent) : Boolean{
@@ -168,12 +166,12 @@ class SqlCachingPodsObserver (
       withPool(POOL_NAME) {
         val cachingPods = jooq.select()
           .from(table(replicasTable))
-          .orderBy(DSL.field("pod_name"))
+          .orderBy(DSL.field(POD_ID))
           .fetch()
           .intoResultSet()
 
         while (cachingPods.next()) {
-          if (cachingPods.getString("pod_name").equals(nodeIdentity.nodeIdentity)) {
+          if (cachingPods.getString(POD_ID).equals(nodeIdentity.nodeIdentity)) {
             index = counter;
           }
           counter++
