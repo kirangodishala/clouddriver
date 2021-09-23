@@ -1,11 +1,11 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2021 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,21 +27,21 @@ rootProject.name = "clouddriver"
 
 def cloudProviderProjects = [
 //  'alicloud' : [':clouddriver-alicloud'],
-  'appengine':  [':clouddriver-appengine', ':clouddriver-google-common'],
-  'aws': [':clouddriver-aws', ':clouddriver-ecs', ':clouddriver-eureka', ':clouddriver-lambda'], // Pull cd-eureka separate "Discover" platform, along with cd-consul?
-  'aws-minimal': [':clouddriver-aws', ':clouddriver-eureka'],
-  'azure': [':clouddriver-azure'],
-  'cloudfoundry': [':clouddriver-cloudfoundry'],
+//  'appengine':  [':clouddriver-appengine', ':clouddriver-google-common'],
+//  'aws': [':clouddriver-aws', ':clouddriver-ecs', ':clouddriver-eureka', ':clouddriver-lambda'], // Pull cd-eureka separate "Discover" platform, along with cd-consul?
+//  'aws-minimal': [':clouddriver-aws', ':clouddriver-eureka'],
+//  'azure': [':clouddriver-azure'],
+//  'cloudfoundry': [':clouddriver-cloudfoundry'],
 //  'dcos': [':clouddriver-dcos'],
-  'gce': [':clouddriver-consul', ':clouddriver-google', ':clouddriver-google-common'],
-  'huaweicloud': [':clouddriver-huaweicloud'],
+//  'gce': [':clouddriver-consul', ':clouddriver-google', ':clouddriver-google-common'],
+//  'huaweicloud': [':clouddriver-huaweicloud'],
   'kubernetes': [':clouddriver-kubernetes'],
-  'oracle': [':clouddriver-oracle'],
-  'tencentcloud': [':clouddriver-tencentcloud'],
-  'yandex': [':clouddriver-yandex']
+//  'oracle': [':clouddriver-oracle'],
+//  'tencentcloud': [':clouddriver-tencentcloud'],
+//  'yandex': [':clouddriver-yandex']
 ]
-cloudProviderProjects.put('gcp', cloudProviderProjects['appengine'] + cloudProviderProjects['gce'] + cloudProviderProjects['kubernetes'])
-cloudProviderProjects.put('titus', cloudProviderProjects['aws-minimal'] + ':clouddriver-titus' + ':clouddriver-docker')
+//cloudProviderProjects.put('gcp', cloudProviderProjects['appengine'] + cloudProviderProjects['gce'] + cloudProviderProjects['kubernetes'])
+//cloudProviderProjects.put('titus', cloudProviderProjects['aws-minimal'] + ':clouddriver-titus' + ':clouddriver-docker')
 cloudProviderProjects.put('all', cloudProviderProjects.collectMany {_, proj -> proj}) // Include all cloud providers.
 
 String icp = settings.ext.has('includeCloudProviders') ? settings.ext.get('includeCloudProviders') : 'all'
