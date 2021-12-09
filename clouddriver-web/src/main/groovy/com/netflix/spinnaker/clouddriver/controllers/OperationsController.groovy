@@ -90,9 +90,9 @@ class OperationsController {
     @RequestParam(value = "clientRequestId", required = false) String clientRequestId,
     @RequestBody List<Map<String, Map>> requestBody) {
     List<AtomicOperation> atomicOperations = operationsService.collectAtomicOperations(cloudProvider, requestBody)
-    log.info("from /{cloudProvider}/ops cloudProvider:", cloudProvider)
-    log.info("from /{cloudProvider}/ops clientRequestId:", clientRequestId)
-    log.info("from /{cloudProvider}/ops  atomicOperations" ,atomicOperations)
+    log.info("from /{cloudProvider}/ops cloudProvider: {}", cloudProvider)
+    log.info("from /{cloudProvider}/ops clientRequestId: {}", clientRequestId)
+    log.info("from /{cloudProvider}/ops  atomicOperations: {}" ,atomicOperations)
     StartOperationResult operationResult = start(cloudProvider, atomicOperations, clientRequestId)
     log.info(operationResult.getResourceUri())
     return operationResult
@@ -106,9 +106,9 @@ class OperationsController {
     @RequestBody Map requestBody) {
     List<AtomicOperation> atomicOperations = operationsService.collectAtomicOperations(cloudProvider, [[(name): requestBody]])
     log.info("from /{cloudProvider}/ops/{name} name:", name)
-    log.info("from /{cloudProvider}/ops/{name} cloudProvider:", cloudProvider)
-    log.info("from /{cloudProvider}/ops/{name} clientRequestId:", clientRequestId)
-    log.info("from /{cloudProvider}/ops/{name} atomic operations:", atomicOperations)
+    log.info("from /{cloudProvider}/ops/{name} cloudProvider: {}", cloudProvider)
+    log.info("from /{cloudProvider}/ops/{name} clientRequestId: {}", clientRequestId)
+    log.info("from /{cloudProvider}/ops/{name} atomic operations: {}", atomicOperations)
     StartOperationResult operationResult = start(cloudProvider, atomicOperations, clientRequestId)
     log.info(operationResult.getResourceUri())
     return operationResult
