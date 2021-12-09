@@ -43,6 +43,7 @@ public class CloudConfigRefreshScheduler implements Runnable {
   @Override
   public void run() {
     try {
+      log.info("Cloud Config REFRESHING................................");
       contextRefresher.refresh();
     } catch (Throwable t) {
       log.error("Error refreshing cloud config", t);

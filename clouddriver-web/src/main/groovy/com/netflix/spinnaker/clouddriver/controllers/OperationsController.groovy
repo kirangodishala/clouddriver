@@ -90,7 +90,12 @@ class OperationsController {
     @RequestParam(value = "clientRequestId", required = false) String clientRequestId,
     @RequestBody List<Map<String, Map>> requestBody) {
     List<AtomicOperation> atomicOperations = operationsService.collectAtomicOperations(cloudProvider, requestBody)
-    return start(cloudProvider, atomicOperations, clientRequestId)
+    log.info("from /{cloudProvider}/ops cloudProvider:", cloudProvider)
+    log.info("from /{cloudProvider}/ops clientRequestId:", clientRequestId)
+    log.info("from /{cloudProvider}/ops  atomicOperations" ,atomicOperations)
+    StartOperationResult operationResult = start(cloudProvider, atomicOperations, clientRequestId)
+    log.info(operationResult.getResourceUri())
+    return operationResult
   }
 
   @PostMapping("/{cloudProvider}/ops/{name}")
@@ -100,7 +105,13 @@ class OperationsController {
     @RequestParam(value = "clientRequestId", required = false) String clientRequestId,
     @RequestBody Map requestBody) {
     List<AtomicOperation> atomicOperations = operationsService.collectAtomicOperations(cloudProvider, [[(name): requestBody]])
-    return start(cloudProvider, atomicOperations, clientRequestId)
+    log.info("from /{cloudProvider}/ops/{name} name:", name)
+    log.info("from /{cloudProvider}/ops/{name} cloudProvider:", cloudProvider)
+    log.info("from /{cloudProvider}/ops/{name} clientRequestId:", clientRequestId)
+    log.info("from /{cloudProvider}/ops/{name} atomic operations:", atomicOperations)
+    StartOperationResult operationResult = start(cloudProvider, atomicOperations, clientRequestId)
+    log.info(operationResult.getResourceUri())
+    return operationResult
   }
 
   @GetMapping("/task/{id}")

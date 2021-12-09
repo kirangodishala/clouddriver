@@ -93,7 +93,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
     def orchestrationsId = registry.createId('orchestrations').withTag("cloudProvider", cloudProvider ?: "unknown")
     def atomicOperationId = registry.createId('operations').withTag("cloudProvider", cloudProvider ?: "unknown")
     def tasksId = registry.createId('tasks').withTag("cloudProvider", cloudProvider ?: "unknown")
-
+    log.info("orchestrationsId : {}, atomicOperationId : {}, tasksId : {} ", orchestrationsId.name(), atomicOperationId.name(), tasksId.name())
     // Get the task (either an existing one, or a new one). If the task already exists, `shouldExecute` will be false
     // if the task is in a failed state and the failure is not retryable.
     def result = getTask(clientRequestId)
@@ -113,6 +113,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
         for (AtomicOperation atomicOperation : atomicOperations) {
           def thisOp = atomicOperationId.withTag("OperationType", atomicOperation.class.simpleName)
           task.updateStatus TASK_PHASE, "Processing op: ${atomicOperation.class.simpleName}"
+          log.info("Processing op: ${atomicOperation.class.simpleName}")
           try {
             TimedCallable.forClosure(registry, thisOp) {
               results << atomicOperation.operate(results)

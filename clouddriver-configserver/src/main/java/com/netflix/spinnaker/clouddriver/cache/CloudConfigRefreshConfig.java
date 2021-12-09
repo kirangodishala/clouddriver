@@ -52,6 +52,7 @@ public class CloudConfigRefreshConfig {
         matchIfMissing = true)
     public CloudConfigRefreshScheduler cloudConfigIntervalRefreshScheduler(
         ContextRefresher contextRefresher, CloudConfigRefreshProperties cloudConfigProperties) {
+      System.out.println("******************** create CloudConfigRefreshScheduler............ ");
       return new CloudConfigRefreshScheduler(
           contextRefresher, cloudConfigProperties.getRefreshIntervalSeconds());
     }
