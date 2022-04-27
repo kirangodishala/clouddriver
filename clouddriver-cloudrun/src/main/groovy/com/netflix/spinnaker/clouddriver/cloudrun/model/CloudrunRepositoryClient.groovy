@@ -14,15 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cloudrun
+package com.netflix.spinnaker.clouddriver.cloudrun.model
 
-import java.lang.annotation.ElementType
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-import java.lang.annotation.Target
-
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@interface CloudrunOperation {
-  String value()
+interface CloudrunRepositoryClient {
+  void initializeLocalDirectory()
+  void updateLocalDirectoryWithVersion(String version)
 }

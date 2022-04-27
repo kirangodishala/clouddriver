@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.clouddriver.cloudrun.deploy.exception;
 
-package com.netflix.spinnaker.clouddriver.cloudrun
+public class CloudrunOperationException extends RuntimeException {
+  public CloudrunOperationException(String message) {
+    super(message);
+  }
 
-import java.lang.annotation.ElementType
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-import java.lang.annotation.Target
-
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@interface CloudrunOperation {
-  String value()
+  public CloudrunOperationException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

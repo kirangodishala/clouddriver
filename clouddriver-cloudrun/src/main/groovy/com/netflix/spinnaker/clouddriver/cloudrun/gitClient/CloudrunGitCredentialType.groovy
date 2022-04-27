@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cloudrun
+package com.netflix.spinnaker.clouddriver.cloudrun.gitClient
 
-import java.lang.annotation.ElementType
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-import java.lang.annotation.Target
-
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@interface CloudrunOperation {
-  String value()
+enum CloudrunGitCredentialType {
+  NONE,
+  HTTPS_USERNAME_PASSWORD,
+  HTTPS_GITHUB_OAUTH_TOKEN,
+  SSH,
 }
