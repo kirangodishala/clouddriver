@@ -74,8 +74,8 @@ class ServerGroupController {
     return getServerGroup(account, region, name, includeDetails)
   }
 
-  @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
-  @PostAuthorize("hasPermission(returnObject?.moniker?.app, 'APPLICATION', 'READ')")
+  //@PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
+  //@PostAuthorize("hasPermission(returnObject?.moniker?.app, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/serverGroups/{account}/{region}/{name:.+}", method = RequestMethod.GET)
   // TODO: /application and /serverGroup endpoints should be in their own controllers. See https://github.com/spinnaker/spinnaker/issues/2023
   ServerGroup getServerGroupByMoniker(@PathVariable String account,
