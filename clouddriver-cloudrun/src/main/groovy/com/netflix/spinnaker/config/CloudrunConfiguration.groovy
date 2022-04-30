@@ -39,13 +39,13 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @Configuration
 @EnableConfigurationProperties
 @EnableScheduling
-@ConditionalOnProperty("cloudrun.enabled")
+@ConditionalOnProperty("gcloud.enabled")
 @ComponentScan(["com.netflix.spinnaker.clouddriver.cloudrun"])
 @Import([CloudrunCredentialsConfiguration])
 class CloudrunConfiguration {
   @Bean
-  @ConfigurationProperties("cloudrun")
-  CloudrunConfigurationProperties appengineConfigurationProperties() {
+  @ConfigurationProperties("gcloud")
+  CloudrunConfigurationProperties cloudrunConfigurationProperties() {
     new CloudrunConfigurationProperties()
   }
 

@@ -144,6 +144,39 @@ azure:
 
 appengine:
   enabled: false
+  accounts:
+    - name: my-appengine-account
+      requiredGroupMembership: []
+      permissions: {}
+      project: opsmx-ggproject-2022
+      jsonPath: /home/sanjeev/Downloads/opsmx-ggproject-2022-bce199e49ca8.json
+      localRepositoryDirectory: /tmp/clouddriver
+      sshTrustUnknownHosts: false
+  primaryAccount: my-appengine-account
+
+cloudrun:
+  enabled: false
+  accounts:
+    - name: my-cloudrun-account
+      requiredGroupMembership: []
+      permissions: {}
+      project: opsmx-ggproject-2022
+      jsonPath: /home/sanjeev/Downloads/opsmx-ggproject-2022-bce199e49ca8.json
+      localRepositoryDirectory: /tmp/clouddriver
+      sshTrustUnknownHosts: false
+  primaryAccount: my-cloudrun-account
+
+gcloud:
+  enabled: true
+  accounts:
+    - name: my-cloudrun-account
+      requiredGroupMembership: [ ]
+      permissions: { }
+      project: opsmx-ggproject-2022
+      jsonPath: /home/sanjeev/Downloads/opsmx-ggproject-2022-bce199e49ca8.json
+      localRepositoryDirectory: /tmp/clouddriver
+      sshTrustUnknownHosts: false
+  primaryAccount: my-cloudrun-account
 
 google:
   enabled: false

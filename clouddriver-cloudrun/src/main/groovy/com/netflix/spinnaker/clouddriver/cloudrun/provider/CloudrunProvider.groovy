@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.cloudrun.provider
 
 
-import com.netflix.spinnaker.clouddriver.cloudrun.cache.Keys
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunCloudProvider
 import com.netflix.spinnaker.clouddriver.security.BaseProvider
@@ -28,13 +27,6 @@ class CloudrunProvider extends BaseProvider implements SearchableProvider {
   final Map<String, String> urlMappingTemplates = Collections.emptyMap()
   final Map<SearchableProvider.SearchableResource, SearchableProvider.SearchResultHydrator> searchResultHydrators = Collections.emptyMap()
   final CloudrunCloudProvider cloudProvider
-  final Set<String> defaultCaches = [
-          Keys.Namespace.APPLICATIONS.ns,
-          Keys.Namespace.CLUSTERS.ns,
-          Keys.Namespace.SERVER_GROUPS.ns,
-          Keys.Namespace.INSTANCES.ns,
-          Keys.Namespace.LOAD_BALANCERS.ns,
-  ].asImmutable()
 
   CloudrunProvider(CloudrunCloudProvider cloudProvider) {
     this.cloudProvider = cloudProvider
@@ -46,7 +38,12 @@ class CloudrunProvider extends BaseProvider implements SearchableProvider {
   }
 
   @Override
+  Set<String> getDefaultCaches() {
+    return null
+  }
+
+  @Override
   Map<String, String> parseKey(String key) {
-    return Keys.parse(key)
+    return null
   }
 }

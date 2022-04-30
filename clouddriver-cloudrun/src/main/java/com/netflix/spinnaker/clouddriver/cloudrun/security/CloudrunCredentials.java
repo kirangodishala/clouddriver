@@ -23,7 +23,10 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.appengine.v1.Appengine;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
 import com.netflix.spinnaker.clouddriver.googlecommon.security.GoogleCommonCredentials;
+
+import java.util.List;
 
 public class CloudrunCredentials extends GoogleCommonCredentials {
 
@@ -33,14 +36,9 @@ public class CloudrunCredentials extends GoogleCommonCredentials {
     this.project = project;
   }
 
-  public Appengine getAppengine(String applicationName) {
-    HttpTransport httpTransport = buildHttpTransport();
-    JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-    GoogleCredentials credentials = getCredentials();
-    HttpRequestInitializer requestInitializer = new HttpCredentialsAdapter(credentials);
+  public void getCloudrun(String applicationName, CloudrunJobExecutor jobExecutor, String jsonPath) {
 
-    return new Appengine.Builder(httpTransport, jsonFactory, requestInitializer)
-        .setApplicationName(applicationName)
-        .build();
+    jobExecutor.runCommand(
+      List.of("gcloud", "auth", "login", "--cred-file", jsonPath));
   }
 }

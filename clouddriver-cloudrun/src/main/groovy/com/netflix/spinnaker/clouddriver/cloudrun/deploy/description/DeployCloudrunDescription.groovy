@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cloudrun.deploy.description
 
-
-import com.netflix.spinnaker.clouddriver.cloudrun.gitClient.CloudrunGitCredentialType
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
 import com.netflix.spinnaker.kork.artifacts.model.Artifact
 import groovy.transform.AutoClone
@@ -33,7 +31,6 @@ class DeployCloudrunDescription extends AbstractCloudrunCredentialsDescription i
   String freeFormDetails
   String repositoryUrl
   String storageAccountName  // for GCS repositories only
-  CloudrunGitCredentialType gitCredentialType
   String branch
   String applicationDirectoryRoot
   List<String> configFilepaths

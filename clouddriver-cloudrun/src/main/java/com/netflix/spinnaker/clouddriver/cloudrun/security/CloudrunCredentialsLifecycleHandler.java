@@ -19,14 +19,11 @@ package com.netflix.spinnaker.clouddriver.cloudrun.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.cloudrun.provider.CloudrunProvider;
-import com.netflix.spinnaker.clouddriver.cloudrun.provider.agent.CloudrunLoadBalancerCachingAgent;
-import com.netflix.spinnaker.clouddriver.cloudrun.provider.agent.CloudrunPlatformApplicationCachingAgent;
-import com.netflix.spinnaker.clouddriver.cloudrun.provider.agent.CloudrunServerGroupCachingAgent;
 import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
-import java.util.Collections;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.Collections;
 
 @Component
 @RequiredArgsConstructor
@@ -39,28 +36,17 @@ public class CloudrunCredentialsLifecycleHandler
 
   @Override
   public void credentialsAdded(CloudrunNamedAccountCredentials credentials) {
-    addAgentFor(credentials);
+    //addAgentFor(credentials);
   }
 
   @Override
   public void credentialsUpdated(CloudrunNamedAccountCredentials credentials) {
     cloudrunCloudProvider.removeAgentsForAccounts(Collections.singleton(credentials.getName()));
-    addAgentFor(credentials);
+    //addAgentFor(credentials);
   }
 
   @Override
   public void credentialsDeleted(CloudrunNamedAccountCredentials credentials) {
     cloudrunCloudProvider.removeAgentsForAccounts(Collections.singleton(credentials.getName()));
-  }
-
-  private void addAgentFor(CloudrunNamedAccountCredentials credentials) {
-    cloudrunCloudProvider.addAgents(
-        List.of(
-            new CloudrunServerGroupCachingAgent(
-                credentials.getName(), credentials, objectMapper, registry),
-            new CloudrunLoadBalancerCachingAgent(
-                credentials.getName(), credentials, objectMapper, registry),
-            new CloudrunPlatformApplicationCachingAgent(
-                credentials.getName(), credentials, objectMapper)));
   }
 }
