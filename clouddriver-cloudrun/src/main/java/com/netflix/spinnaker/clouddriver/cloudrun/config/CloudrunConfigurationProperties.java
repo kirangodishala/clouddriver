@@ -16,23 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver.cloudrun.config;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
 import com.netflix.spinnaker.clouddriver.googlecommon.config.GoogleCommonManagedAccount;
-import com.squareup.okhttp.OkHttpClient;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.springframework.util.StringUtils;
-import retrofit.RestAdapter;
-import retrofit.client.OkClient;
-import retrofit.client.Response;
-import retrofit.http.GET;
-import retrofit.http.Headers;
-import retrofit.mime.TypedByteArray;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 public class CloudrunConfigurationProperties {
@@ -42,89 +31,7 @@ public class CloudrunConfigurationProperties {
   @Data
   @EqualsAndHashCode(callSuper = true)
   public static class ManagedAccount extends GoogleCommonManagedAccount {
-    public static final String metadataUrl = "http://metadata.google.internal/computeMetadata/v1";
-
-    private String serviceAccountEmail;
-    @EqualsAndHashCode.Exclude private String computedServiceAccountEmail;
     private String localRepositoryDirectory = "/var/tmp/clouddriver";
-    private String gitHttpsUsername;
-    private String gitHttpsPassword;
-    private String githubOAuthAccessToken;
-    private String sshPrivateKeyFilePath;
-    private String sshPrivateKeyPassphrase;
-    private String sshKnownHostsFilePath;
     private boolean sshTrustUnknownHosts;
-    private GcloudReleaseTrack gcloudReleaseTrack;
-    private List<String> services;
-    private List<String> versions;
-    private List<String> omitServices;
-    private List<String> omitVersions;
-    private Long cachingIntervalSeconds;
-
-    public void initialize(CloudrunJobExecutor jobExecutor, String gcloudPath) {
-      if (!StringUtils.isEmpty(getJsonPath())) {
-        jobExecutor.runCommand(
-            List.of(gcloudPath, "auth", "activate-service-account", "--key-file", getJsonPath()));
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-          JsonNode node = mapper.readTree(new File(getJsonPath()));
-          if (StringUtils.isEmpty(getProject())) {
-            setProject(node.get("project_id").asText());
-          }
-          if (StringUtils.isEmpty(serviceAccountEmail)) {
-            this.computedServiceAccountEmail = node.get("client_email").asText();
-          } else {
-            this.computedServiceAccountEmail = serviceAccountEmail;
-          }
-
-        } catch (Exception e) {
-          throw new RuntimeException("Could not find read JSON configuration file.", e);
-        }
-      } else {
-        MetadataService metadataService = createMetadataService();
-
-        try {
-          if (StringUtils.isEmpty(getProject())) {
-            setProject(responseToString(metadataService.getProject()));
-          }
-          this.computedServiceAccountEmail =
-              responseToString(metadataService.getApplicationDefaultServiceAccountEmail());
-        } catch (Exception e) {
-          throw new RuntimeException(
-              "Could not find application default credentials for App Engine.", e);
-        }
-      }
-    }
-
-    static MetadataService createMetadataService() {
-      OkHttpClient client = new OkHttpClient();
-      client.setRetryOnConnectionFailure(true);
-      RestAdapter restAdapter =
-          new RestAdapter.Builder()
-              .setEndpoint(metadataUrl)
-              .setClient(new OkClient(client))
-              .build();
-      return restAdapter.create(MetadataService.class);
-    }
-
-    interface MetadataService {
-      @Headers("Metadata-Flavor: Google")
-      @GET("/project/project-id")
-      Response getProject();
-
-      @Headers("Metadata-Flavor: Google")
-      @GET("/instance/service-accounts/default/email")
-      Response getApplicationDefaultServiceAccountEmail();
-    }
-
-    static String responseToString(Response response) {
-      return new String(((TypedByteArray) response.getBody()).getBytes());
-    }
-
-    public enum GcloudReleaseTrack {
-      ALPHA,
-      BETA,
-      STABLE,
-    }
   }
 }

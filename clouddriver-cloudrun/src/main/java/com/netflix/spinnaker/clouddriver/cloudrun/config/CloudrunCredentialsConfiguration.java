@@ -18,11 +18,8 @@ package com.netflix.spinnaker.clouddriver.cloudrun.config;
 
 import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunJobExecutor;
 import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunNamedAccountCredentials;
-import com.netflix.spinnaker.clouddriver.security.CredentialsInitializerSynchronizable;
 import com.netflix.spinnaker.credentials.CredentialsTypeBaseConfiguration;
 import com.netflix.spinnaker.credentials.CredentialsTypeProperties;
-import com.netflix.spinnaker.credentials.definition.AbstractCredentialsLoader;
-import com.netflix.spinnaker.credentials.poller.Poller;
 import com.netflix.spinnaker.kork.configserver.ConfigFileService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -55,11 +52,6 @@ public class CloudrunCredentialsConfiguration {
             .credentialsParser(
                 a -> {
                   try {
-                    String gcloudPath = configurationProperties.getGcloudPath();
-                    if (StringUtils.isEmpty(gcloudPath)) {
-                      gcloudPath = "gcloud";
-                    }
-                    a.initialize(jobExecutor, gcloudPath);
 
                     String jsonKey = configFileService.getContents(a.getJsonPath());
                     return new CloudrunNamedAccountCredentials.Builder()
@@ -75,29 +67,14 @@ public class CloudrunCredentialsConfiguration {
                         .project(a.getProject())
                         .jsonKey(jsonKey)
                         .applicationName(clouddriverUserAgentApplicationName)
-                        .gcloudPath(gcloudPath)
                         .jsonPath(a.getJsonPath())
                         .requiredGroupMembership(a.getRequiredGroupMembership())
                         .permissions(a.getPermissions().build())
-                        .serviceAccountEmail(a.getComputedServiceAccountEmail())
-                        .localRepositoryDirectory(a.getLocalRepositoryDirectory())
-                        .gitHttpsUsername(a.getGitHttpsUsername())
-                        .gitHttpsPassword(a.getGitHttpsPassword())
-                        .githubOAuthAccessToken(a.getGithubOAuthAccessToken())
-                        .sshPrivateKeyFilePath(a.getSshPrivateKeyFilePath())
-                        .sshPrivateKeyPassphrase(a.getSshPrivateKeyPassphrase())
-                        .sshKnownHostsFilePath(a.getSshKnownHostsFilePath())
                         .sshTrustUnknownHosts(a.isSshTrustUnknownHosts())
-                        .gcloudReleaseTrack(a.getGcloudReleaseTrack())
-                        .services(a.getServices())
-                        .versions(a.getVersions())
-                        .omitServices(a.getOmitServices())
-                        .omitVersions(a.getOmitVersions())
-                        .cachingIntervalSeconds(a.getCachingIntervalSeconds())
-                        .build();
+                        .build(jobExecutor);
                   } catch (Exception e) {
                     log.info(
-                        String.format("Could not load account %s for App Engine", a.getName()), e);
+                        String.format("Could not load account %s for Cloud Run", a.getName()), e);
                     return null;
                   }
                 })
@@ -105,15 +82,4 @@ public class CloudrunCredentialsConfiguration {
             .build());
   }
 
-  @Bean
-  public CredentialsInitializerSynchronizable cloudrunCredentialsInitializerSynchronizable(
-      AbstractCredentialsLoader<CloudrunNamedAccountCredentials> loader) {
-    final Poller<CloudrunNamedAccountCredentials> poller = new Poller<>(loader);
-    return new CredentialsInitializerSynchronizable() {
-      @Override
-      public void synchronize() {
-        poller.run();
-      }
-    };
-  }
 }

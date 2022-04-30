@@ -17,12 +17,9 @@
 package com.netflix.spinnaker.clouddriver.cloudrun.health
 
 
-import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunNamedAccountCredentials
-import com.netflix.spinnaker.credentials.CredentialsTypeBaseConfiguration
 import groovy.transform.InheritConstructors
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.http.HttpStatus
@@ -30,52 +27,21 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.web.bind.annotation.ResponseStatus
 
-import java.util.concurrent.atomic.AtomicReference
-
 @Component
 class CloudrunHealthIndicator implements HealthIndicator {
+
   private static final Logger LOG = LoggerFactory.getLogger(CloudrunHealthIndicator)
-
-  @Autowired
-  CredentialsTypeBaseConfiguration<CloudrunNamedAccountCredentials, ?> credentialsTypeBaseConfiguration
-
-  private final AtomicReference<Exception> lastException = new AtomicReference<>(null)
 
   @Override
   Health health() {
-    def ex = lastException.get()
-
-    if (ex) {
-      throw ex
-    }
-
     new Health.Builder().up().build()
   }
 
   @Scheduled(fixedDelay = 300000L)
   void checkHealth() {
-    try {
-      credentialsTypeBaseConfiguration.credentialsRepository?.all?.forEach({
-        try {
-          /*
-            Location is the only App Engine resource guaranteed to exist.
-            The API only accepts '-' here, rather than project name. To paraphrase the provided error,
-            the list of locations is static and not a property of an individual project.
-          */
-          it.appengine.apps().locations().list('-').execute()
-        } catch (IOException e) {
-          throw new AppengineIOException(e)
-        }
-      })
-      lastException.set(null)
-    } catch (Exception ex) {
-      LOG.warn "Unhealthy", ex
-
-      lastException.set(ex)
-    }
   }
 
-  @ResponseStatus(value = HttpStatus.SERVICE_UNAVAILABLE, reason = "Problem communicating with App Engine")
+  @ResponseStatus(value = HttpStatus.SERVICE_UNAVAILABLE, reason = "Problem communicating with Cloud run")
   @InheritConstructors
-  static class AppengineIOException extends RuntimeException {}
+  static class CloudrunIOException extends RuntimeException {}
 }

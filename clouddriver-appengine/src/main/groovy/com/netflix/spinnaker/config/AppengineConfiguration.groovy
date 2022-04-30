@@ -21,6 +21,11 @@ import com.netflix.spinnaker.clouddriver.appengine.config.AppengineConfiguration
 import com.netflix.spinnaker.clouddriver.appengine.config.AppengineCredentialsConfiguration
 import com.netflix.spinnaker.clouddriver.appengine.health.AppengineHealthIndicator
 import com.netflix.spinnaker.clouddriver.appengine.provider.AppengineProvider
+import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
+import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler
+import com.netflix.spinnaker.credentials.CredentialsRepository
+import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -51,5 +56,14 @@ class AppengineConfiguration {
   @Bean
   AppengineProvider appengineProvider(AppengineCloudProvider cloudProvider) {
     new AppengineProvider(cloudProvider)
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(
+    value = AppengineNamedAccountCredentials.class,
+    parameterizedContainer = CredentialsRepository.class)
+  public CredentialsRepository<AppengineNamedAccountCredentials> credentialsRepository(
+    CredentialsLifecycleHandler<AppengineNamedAccountCredentials> eventHandler) {
+    return new MapBackedCredentialsRepository<>(AppengineCloudProvider.ID, eventHandler);
   }
 }
