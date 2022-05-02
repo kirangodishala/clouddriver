@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 OpsMx Inc
+ * Copyright 2022 OpsMx, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,25 +12,21 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.clouddriver.cloudrun.config;
+package com.netflix.spinnaker.clouddriver.cloudrun.deploy.description;
 
-import com.netflix.spinnaker.clouddriver.googlecommon.config.GoogleCommonManagedAccount;
-import java.util.ArrayList;
-import java.util.List;
+import com.netflix.spinnaker.kork.artifacts.model.Artifact;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-public class CloudrunConfigurationProperties {
-  private List<ManagedAccount> accounts = new ArrayList<>();
-  private String gcloudPath;
-
-  @Data
-  @EqualsAndHashCode(callSuper = true)
-  public static class ManagedAccount extends GoogleCommonManagedAccount {
-    private String localRepositoryDirectory = "/var/tmp/clouddriver";
-    private boolean sshTrustUnknownHosts;
-  }
+@EqualsAndHashCode(callSuper = true)
+public class DeployCloudrunConfigDescription extends AbstractCloudrunCredentialsDescription {
+  private String accountName;
+  private Artifact cronArtifact;
+  private Artifact dispatchArtifact;
+  private Artifact indexArtifact;
+  private Artifact queueArtifact;
 }
