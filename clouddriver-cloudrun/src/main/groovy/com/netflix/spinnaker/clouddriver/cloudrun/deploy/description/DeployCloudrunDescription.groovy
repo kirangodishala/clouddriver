@@ -24,20 +24,11 @@ import groovy.transform.Canonical
 @AutoClone
 @Canonical
 class DeployCloudrunDescription extends AbstractCloudrunCredentialsDescription implements DeployDescription {
-  Artifact artifact
   String accountName
   String application
-  String stack
-  String freeFormDetails
-  String repositoryUrl
-  String storageAccountName  // for GCS repositories only
-  String branch
-  String applicationDirectoryRoot
-  List<String> configFilepaths
   List<String> configFiles
-  List<Artifact> configArtifacts
   Boolean promote
   Boolean stopPreviousVersion
+  String applicationDirectoryRoot
   Boolean suppressVersionString
-  String containerImageUrl // app engine flex only
 }

@@ -68,6 +68,8 @@ public class CloudrunCredentialsConfiguration {
                         .jsonKey(jsonKey)
                         .applicationName(clouddriverUserAgentApplicationName)
                         .jsonPath(a.getJsonPath())
+                        .serviceAccountEmail(a.getServiceAccountEmail())
+                        .localRepositoryDirectory(a.getLocalRepositoryDirectory())
                         .requiredGroupMembership(a.getRequiredGroupMembership())
                         .permissions(a.getPermissions().build())
                         .sshTrustUnknownHosts(a.isSshTrustUnknownHosts())

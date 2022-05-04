@@ -24,11 +24,19 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeploymentResult
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
-import com.netflix.spinnaker.kork.artifacts.model.Artifact
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 
+import java.nio.file.Path
+import java.nio.file.Paths
+
 class DeployCloudrunAtomicOperation implements AtomicOperation<DeploymentResult> {
+
   private static final String BASE_PHASE = "DEPLOY"
+
+  private static final Logger log =
+    LoggerFactory.getLogger(DeployCloudrunAtomicOperation.class);
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -42,29 +50,35 @@ class DeployCloudrunAtomicOperation implements AtomicOperation<DeploymentResult>
 
   DeployCloudrunDescription description
 
-    DeployCloudrunAtomicOperation(DeployCloudrunDescription description) {
+  DeployCloudrunAtomicOperation(DeployCloudrunDescription description) {
     this.description = description
-    if (description.artifact) {
-      switch (description.artifact.type) {
-        case 'gcs/object':
-          String ref = description.artifact.reference
-          if (!ref) {
-            throw new CloudrunOperationException("Missing artifact reference for GCS deploy")
-          }
-          description.repositoryUrl = ref.startsWith("gs://") ? ref : "gs://${ref}"
-          usesGcs = true
-          break
-        case 'docker/image':
-          if (!description.artifact.name) {
-            throw new CloudrunOperationException("Missing artifact name for Flex Custom deploy")
-          }
-          containerDeployment = description.artifact.name
-          break
-        default:
-          throw new CloudrunOperationException("Unhandled artifact type in description")
-          break
-      }
+  }
+
+  String deploy(String repositoryPath) {
+    def project = description.credentials.project
+    def region = description.credentials.region
+    def applicationDirectoryRoot = description.applicationDirectoryRoot
+    def configFiles = description.configFiles
+    def writtenFullConfigFilePaths = writeConfigFiles(configFiles, repositoryPath, applicationDirectoryRoot)
+
+    // runCommand expects a List<String> and will fail if some of the arguments are GStrings (as that is not a subclass
+    // of String). It is thus important to only add Strings to deployCommand.  For example, adding a flag "--test=$testvalue"
+    // below will cause deployments to fail unless you explicitly convert it to a String via "--test=$testvalue".toString()
+    def deployCommand = []
+
+    deployCommand += ["gcloud", "run", "services", "replace", *(writtenFullConfigFilePaths), "--region=us-central1"]
+
+    def success = "false"
+    try {
+      jobExecutor.runCommand(deployCommand)
+      success = "true"
+    } catch (e) {
+      throw new CloudrunOperationException("Failed to deploy to Cloud Run with command ${deployCommand.join(' ')}: ${e.getMessage()}")
+    } finally {
+      deleteFiles(writtenFullConfigFilePaths)
     }
+    //task.updateStatus BASE_PHASE, "Done deploying version $versionName..."
+    return success
   }
 
   /**
@@ -76,25 +90,59 @@ class DeployCloudrunAtomicOperation implements AtomicOperation<DeploymentResult>
    */
   @Override
   DeploymentResult operate(List priorOutputs) {
-    jobExecutor.runCommand(List.of("gcloud", "run", "deploy", "helloworld", "--region=us-central1", "--image=us-central1-docker.pkg.dev/opsmx-ggproject-2022/cloud-run-source-deploy/helloworld:latest"));
+
+    def baseDir = description.credentials.localRepositoryDirectory
+
+    def directoryPath = getFullDirectoryPath(baseDir)
+    def serviceAccount = description.credentials.serviceAccountEmail
+    def region = description.credentials.region
+    String deployPath = directoryPath
+    String newVersionName
+
+    try {
+      newVersionName = deploy(deployPath)
+      log.info("try")
+    } finally {
+      log.info("finally")
+    }
+
+    //jobExecutor.runCommand(List.of("gcloud", "run", "deploy", "helloworld", "--region=us-central1", "--image=us-central1-docker.pkg.dev/opsmx-ggproject-2022/cloud-run-source-deploy/helloworld:latest"));
     //jobExecutor.runCommand(List.of("gcloud", "run", "services" , "--region=us-central1","describe", "helloworld"))
     //log.info("here")
   }
 
-
-  String cloneOrUpdateLocalRepository(String directoryPath, Integer retryCount) {
-
-  }
-
-  String deploy(String repositoryPath) {
-
-  }
-
-  List<String> fetchConfigArtifacts(List<Artifact> configArtifacts, String repositoryPath, String applicationDirectoryRoot) {
-
+  static void deleteFiles(List<String> paths) {
+    paths.each { path ->
+      try {
+        new File(path).delete()
+      } catch (e) {
+        throw new CloudrunOperationException("Could not delete config file: ${e.getMessage()}")
+      }
+    }
   }
 
   static List<String> writeConfigFiles(List<String> configFiles, String repositoryPath, String applicationDirectoryRoot) {
+    if (!configFiles) {
+      return []
+    } else {
+      return configFiles.collect { configFile ->
+        def path = generateRandomRepositoryFilePath(repositoryPath, applicationDirectoryRoot)
+        try {
+          path.toFile() << configFile
+        } catch (e) {
+          throw new CloudrunOperationException("Could not write config file: ${e.getMessage()}")
+        }
+        return path.toString()
+      }
+    }
+  }
 
+  static Path generateRandomRepositoryFilePath(String repositoryPath, String applicationDirectoryRoot) {
+    def name = UUID.randomUUID().toString()
+    return Paths.get(repositoryPath, applicationDirectoryRoot ?: ".", "${name}.yaml")
+  }
+
+  static String getFullDirectoryPath(String localRepositoryDirectory) {
+    return Paths.get(localRepositoryDirectory).toString()
   }
 }
