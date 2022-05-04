@@ -39,6 +39,12 @@ class CloudrunNamedAccountCredentials extends AbstractAccountCredentials<Cloudru
   @JsonIgnore
   final String jsonPath
 
+  @JsonIgnore
+  final String serviceAccountEmail
+
+  @JsonIgnore
+  final String localRepositoryDirectory
+
   final CloudrunCredentials credentials
 
   final String applicationName
@@ -55,6 +61,8 @@ class CloudrunNamedAccountCredentials extends AbstractAccountCredentials<Cloudru
 
     String jsonKey
     String jsonPath
+    String serviceAccountEmail
+    String localRepositoryDirectory
     String applicationName
     boolean sshTrustUnknownHosts
 
@@ -80,6 +88,16 @@ class CloudrunNamedAccountCredentials extends AbstractAccountCredentials<Cloudru
 
     Builder project(String project) {
       this.project = project
+      return this
+    }
+
+    Builder serviceAccountEmail(String serviceAccountEmail) {
+      this.serviceAccountEmail = serviceAccountEmail
+      return this
+    }
+
+    Builder localRepositoryDirectory(String localRepositoryDirectory) {
+      this.localRepositoryDirectory = localRepositoryDirectory
       return this
     }
 
@@ -145,6 +163,8 @@ class CloudrunNamedAccountCredentials extends AbstractAccountCredentials<Cloudru
         requiredGroupMembership,
         permissions,
         jsonPath,
+        serviceAccountEmail,
+        localRepositoryDirectory,
         credentials,
         applicationName)
     }

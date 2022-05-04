@@ -30,6 +30,8 @@ public class CloudrunConfigurationProperties {
   @Data
   @EqualsAndHashCode(callSuper = true)
   public static class ManagedAccount extends GoogleCommonManagedAccount {
+
+    private String serviceAccountEmail;
     private String localRepositoryDirectory = "/var/tmp/clouddriver";
     private boolean sshTrustUnknownHosts;
   }
