@@ -81,5 +81,4 @@ public class CloudrunCredentialsConfiguration {
             .defaultCredentialsSource(configurationProperties::getAccounts)
             .build());
   }
-
 }

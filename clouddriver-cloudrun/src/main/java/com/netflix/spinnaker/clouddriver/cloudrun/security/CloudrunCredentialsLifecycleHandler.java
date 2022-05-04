@@ -20,10 +20,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.cloudrun.provider.CloudrunProvider;
 import com.netflix.spinnaker.credentials.CredentialsLifecycleHandler;
+import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.Collections;
 
 @Component
 @RequiredArgsConstructor
@@ -36,13 +35,13 @@ public class CloudrunCredentialsLifecycleHandler
 
   @Override
   public void credentialsAdded(CloudrunNamedAccountCredentials credentials) {
-    //addAgentFor(credentials);
+    // addAgentFor(credentials);
   }
 
   @Override
   public void credentialsUpdated(CloudrunNamedAccountCredentials credentials) {
     cloudrunCloudProvider.removeAgentsForAccounts(Collections.singleton(credentials.getName()));
-    //addAgentFor(credentials);
+    // addAgentFor(credentials);
   }
 
   @Override

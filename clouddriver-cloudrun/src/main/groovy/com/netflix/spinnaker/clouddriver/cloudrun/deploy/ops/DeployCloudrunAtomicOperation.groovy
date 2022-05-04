@@ -76,7 +76,9 @@ class DeployCloudrunAtomicOperation implements AtomicOperation<DeploymentResult>
    */
   @Override
   DeploymentResult operate(List priorOutputs) {
-
+    jobExecutor.runCommand(List.of("gcloud", "run", "deploy", "helloworld", "--region=us-central1", "--image=us-central1-docker.pkg.dev/opsmx-ggproject-2022/cloud-run-source-deploy/helloworld:latest"));
+    //jobExecutor.runCommand(List.of("gcloud", "run", "services" , "--region=us-central1","describe", "helloworld"))
+    //log.info("here")
   }
 
 
