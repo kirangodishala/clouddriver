@@ -29,7 +29,8 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
 import java.util.stream.Collectors
-
+import com.netflix.spinnaker.clouddriver.helpers.WriteToFile;
+import java.time.LocalDateTime;
 @RestController
 @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE)
 class LoadBalancerController {
@@ -41,6 +42,8 @@ class LoadBalancerController {
   @PostAuthorize("@authorizationSupport.filterForAccounts(returnObject)")
   @RequestMapping(value = "/applications/{application}/loadBalancers", method = RequestMethod.GET)
   List<LoadBalancer> list(@PathVariable String application) {
+    WriteToFile.createTempFile(" /applications/{application}/loadBalancers -> LoadBalancerController \n");
+
     loadBalancerProviders.findResults {
       it.getApplicationLoadBalancers(application)
     }
@@ -52,6 +55,8 @@ class LoadBalancerController {
   @PostAuthorize("@authorizationSupport.filterLoadBalancerProviderItems(returnObject)")
   @RequestMapping(value = "/{cloudProvider:.+}/loadBalancers", method = RequestMethod.GET)
   List<LoadBalancerProvider.Item> listForCloudProvider(@PathVariable String cloudProvider) {
+    WriteToFile.createTempFile("  /{cloudProvider:.+}/loadBalancers -> LoadBalancerController  n");
+
     return findLoadBalancerProviders(cloudProvider).stream()
         .flatMap({ (it.list() ?: []).stream() })
         .collect(Collectors.toList())
@@ -61,6 +66,8 @@ class LoadBalancerController {
   @RequestMapping(value = "/{cloudProvider:.+}/loadBalancers/{name:.+}", method = RequestMethod.GET)
   LoadBalancerProvider.Item get(@PathVariable String cloudProvider,
                                 @PathVariable String name) {
+    WriteToFile.createTempFile(" /{cloudProvider:.+}/loadBalancers/{name} -> LoadBalancerController \n");
+
     return findLoadBalancerProviders(cloudProvider)
         .stream()
         .map({ return it.get(name) })
@@ -76,6 +83,8 @@ class LoadBalancerController {
                                                             @PathVariable String account,
                                                             @PathVariable String region,
                                                             @PathVariable String name) {
+    WriteToFile.createTempFile(" /{cloudProvider:.+}/loadBalancers/{account:.+}/{region:.+}/{name:.+} -> LoadBalancerController \n");
+
     return findLoadBalancerProviders(cloudProvider).stream()
         .map({ return it.byAccountAndRegionAndName(account, region, name) ?: [] })
         .flatMap({ return it.stream() })

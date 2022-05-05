@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.controllers;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.clouddriver.configuration.CredentialsConfiguration;
+import com.netflix.spinnaker.clouddriver.helpers.WriteToFile;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials;
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider;
 import com.netflix.spinnaker.clouddriver.security.AccountDefinitionRepository;
@@ -26,6 +27,7 @@ import com.netflix.spinnaker.credentials.definition.CredentialsDefinition;
 import com.netflix.spinnaker.kork.annotations.Alpha;
 import com.netflix.spinnaker.kork.exceptions.ConfigurationException;
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -66,7 +68,14 @@ public class CredentialsController {
 
   @GetMapping
   public List<Map<String, Object>> listAccountCredentials(@RequestParam Optional<Boolean> expand) {
+    StringBuilder builder =
+        new StringBuilder("  /credentials -> CredentialsController.listAccountCredentials() \n\n");
     boolean shouldExpand = expand.orElse(false);
+    //    builder.append((accountCredentialsProvider.getAll().stream()
+    //      .map(accountCredentials -> renderAccountCredentials(accountCredentials, shouldExpand))
+    //      .filter(Objects::nonNull)
+    //      .collect(Collectors.toList())).toString() + "\n");
+    WriteToFile.createTempFile(builder.toString().getBytes());
     return accountCredentialsProvider.getAll().stream()
         .map(accountCredentials -> renderAccountCredentials(accountCredentials, shouldExpand))
         .filter(Objects::nonNull)
@@ -75,11 +84,21 @@ public class CredentialsController {
 
   @GetMapping("/{accountName}")
   public Map<String, Object> getAccountCredentialsDetails(@PathVariable String accountName) {
+    StringBuilder builder =
+        new StringBuilder(
+            LocalDateTime.now()
+                + "  /credentials/"
+                + accountName
+                + " -> \n CredentialsController.listAccountCredentials() \n\n");
+
     var accountDetail =
         renderAccountCredentials(accountCredentialsProvider.getCredentials(accountName), true);
     if (accountDetail == null) {
       throw new NotFoundException(String.format("Account does not exist (name: %s)", accountName));
     }
+    //    builder.append(accountDetail);
+    //    builder.append("\n  /credentials/"+accountName +" <<-- \n");
+    WriteToFile.createTempFile(builder.toString().getBytes());
     return accountDetail;
   }
 

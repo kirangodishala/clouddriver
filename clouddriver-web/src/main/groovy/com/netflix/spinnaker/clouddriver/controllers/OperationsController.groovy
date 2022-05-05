@@ -39,7 +39,8 @@ import javax.annotation.PreDestroy
 import java.util.concurrent.TimeUnit
 
 import static java.lang.String.format
-
+import com.netflix.spinnaker.clouddriver.helpers.WriteToFile;
+import java.time.LocalDateTime;
 @Slf4j
 @RestController
 class OperationsController {
@@ -67,8 +68,23 @@ class OperationsController {
   StartOperationResult operations(
     @RequestParam(value = "clientRequestId", required = false) String clientRequestId,
     @RequestBody List<Map<String, Map>> requestBody) {
+    StringBuilder builder=new StringBuilder("\n" + LocalDateTime.now()+ "  /ops -> OperationsController.operations() \n");
+
+
     List<AtomicOperation> atomicOperations = operationsService.collectAtomicOperations(requestBody)
-    return start(null, atomicOperations, clientRequestId)
+    StartOperationResult result = start(null, atomicOperations, clientRequestId)
+
+    builder.append("\n");
+    builder.append("requestBody :: " + requestBody);
+    builder.append("\n\n");
+    builder.append("List<AtomicOperation> : " + atomicOperations);
+    builder.append("\n");
+    builder.append("result : " + result.getResourceUri());
+    builder.append("\n");
+    builder.append("/ops <<-- \n\n ");
+    WriteToFile.createTempFile(builder.toString().getBytes());
+
+    return result
   }
 
   /**
@@ -80,8 +96,22 @@ class OperationsController {
     @PathVariable("name") String name,
     @RequestParam(value = "clientRequestId", required = false) String clientRequestId,
     @RequestBody Map requestBody) {
+    StringBuilder builder=new StringBuilder("\n" + LocalDateTime.now()+ "  /ops/{name} -> \n OperationsController.operation() \n");
     List<AtomicOperation> atomicOperations = operationsService.collectAtomicOperations([[(name): requestBody]])
-    return start(null, atomicOperations, clientRequestId)
+
+    StartOperationResult result = start(null, atomicOperations, clientRequestId)
+
+    builder.append("Depricated !!!!!!!!!\n");
+    builder.append("requestBody :: " + requestBody);
+    builder.append("\n\n");
+    builder.append("List<AtomicOperation> : " + atomicOperations);
+    builder.append("\n");
+    builder.append("result : " + result.getResourceUri());
+    builder.append("\n");
+    builder.append("/ops <<-- \n\n ");
+    WriteToFile.createTempFile(builder.toString().getBytes());
+
+    return result
   }
 
   @PostMapping("/{cloudProvider}/ops")
@@ -89,8 +119,24 @@ class OperationsController {
     @PathVariable("cloudProvider") String cloudProvider,
     @RequestParam(value = "clientRequestId", required = false) String clientRequestId,
     @RequestBody List<Map<String, Map>> requestBody) {
+
+    StringBuilder builder=new StringBuilder("\n" + LocalDateTime.now()+ "  /"+ cloudProvider + "/ops -> \n OperationsController.cloudProviderOperations() \n");
+
     List<AtomicOperation> atomicOperations = operationsService.collectAtomicOperations(cloudProvider, requestBody)
-    return start(cloudProvider, atomicOperations, clientRequestId)
+
+    StartOperationResult result = start(cloudProvider, atomicOperations, clientRequestId)
+
+    builder.append("\n");
+    builder.append("requestBody :: " + requestBody);
+    builder.append("\n\n");
+    builder.append("List<AtomicOperation> : " + atomicOperations);
+    builder.append("\n");
+    builder.append("result : " + result.getResourceUri());
+    builder.append("\n");
+    builder.append("/" + cloudProvider + "/ops  <<-- \n\n ");
+    WriteToFile.createTempFile(builder.toString().getBytes());
+
+    return result
   }
 
   @PostMapping("/{cloudProvider}/ops/{name}")
@@ -99,21 +145,50 @@ class OperationsController {
     @PathVariable("name") String name,
     @RequestParam(value = "clientRequestId", required = false) String clientRequestId,
     @RequestBody Map requestBody) {
+
+    StringBuilder builder=new StringBuilder("\n" + LocalDateTime.now()+ "  /"+ cloudProvider + "/ops/"+name +" -> \n OperationsController.cloudProviderOperations() \n");
+
+
     List<AtomicOperation> atomicOperations = operationsService.collectAtomicOperations(cloudProvider, [[(name): requestBody]])
-    return start(cloudProvider, atomicOperations, clientRequestId)
+
+    StartOperationResult result = start(cloudProvider, atomicOperations, clientRequestId)
+
+    builder.append("\n");
+    builder.append("requestBody :: " + requestBody);
+    builder.append("\n\n");
+    builder.append("List<AtomicOperation> : " + atomicOperations);
+    builder.append("\n");
+    builder.append("result : " + result.getResourceUri());
+    builder.append("\n");
+    builder.append("/"+ cloudProvider + "/ops/" + name + "  <<-- \n\n ");
+    WriteToFile.createTempFile(builder.toString().getBytes());
+
+    return result
+
   }
 
   @GetMapping("/task/{id}")
   Task get(@PathVariable("id") String id) {
+    StringBuilder builder=new StringBuilder("  /task/"+id +" -> OperationsController.get()");
+
     Task t = taskRepository.get(id)
     if (!t) {
       throw new NotFoundException("Task not found (id: ${id})")
     }
+    builder.append("\n task id : " + id)
+    builder.append("\n task status : " + t.getStatus().getStatus())
+    builder.append("\n")
+    builder.append("/task/" +id + " <<-- \n\n ");
+    WriteToFile.createTempFile(builder.toString().getBytes());
     return t
   }
 
   @GetMapping("/task")
   List<Task> list() {
+    StringBuilder builder=new StringBuilder("\n" + LocalDateTime.now()+ "  /task/ -> \n OperationsController.list() \n");
+    builder.append("task list : " + taskRepository.list())
+    builder.append("/task <<-- \n\n ");
+    WriteToFile.createTempFile(builder.toString().getBytes());
     taskRepository.list()
   }
 
@@ -124,6 +199,7 @@ class OperationsController {
    */
   @PostMapping("/task/{id}:resume")
   StartOperationResult resumeTask(@PathVariable("id") String id) {
+    WriteToFile.createTempFile("\n" + LocalDateTime.now() + " /task/{id}:resume \n\n");
     Task t = taskRepository.get(id)
     if (t == null) {
       throw new NotFoundException("Task not found (id: $id)")
@@ -149,6 +225,7 @@ class OperationsController {
    */
   @PreDestroy
   void destroy() {
+    WriteToFile.createTempFile("\n" + LocalDateTime.now() + " destroy() \n\n");
     long start = System.currentTimeMillis()
     def tasks = taskRepository.listByThisInstance()
     while (tasks && !tasks.isEmpty() &&

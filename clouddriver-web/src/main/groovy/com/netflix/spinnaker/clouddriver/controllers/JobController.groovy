@@ -30,6 +30,8 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
+import com.netflix.spinnaker.clouddriver.helpers.WriteToFile;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/applications/{application}/jobs")
@@ -48,6 +50,8 @@ class JobController {
                        @ApiParam(value = "Account job was created by", required = true) @PathVariable String account,
                        @ApiParam(value = "Namespace, region, or zone job is running in", required = true) @PathVariable String location,
                        @ApiParam(value = "Unique identifier of job being looked up", required = true) @PathVariable String id) {
+    WriteToFile.createTempFile("\n" + LocalDateTime.now() + "JobController  /applications/{application}/jobs/{account}/{location}/{id:.+} \n\n");
+
     Authentication auth = SecurityContextHolder.getContext().getAuthentication();
     Collection<JobStatus> jobMatches = jobProviders.findResults {
       return it.collectJob(account, location, id)
@@ -65,6 +69,8 @@ class JobController {
                  @ApiParam(value = "Account job is running in", required = true) @PathVariable String account,
                  @ApiParam(value = "Namespace, region, or zone job is running in", required = true) @PathVariable String location,
                  @ApiParam(value = "Unique identifier of job to be canceled", required = true) @PathVariable String id) {
+    WriteToFile.createTempFile("\n" + LocalDateTime.now() + "JobController  /applications/{application}/jobs/{account}/{location}/{id:.+} - DELETE \n\n");
+
     jobProviders.forEach {
       it.cancelJob(account, location, id)
     }
@@ -80,6 +86,8 @@ class JobController {
     @ApiParam(value = "Unique identifier of job being looked up", required = true) @PathVariable String id,
     @ApiParam(value = "File name to look up", required = true) @PathVariable String fileName
   ) {
+    WriteToFile.createTempFile("\n" + LocalDateTime.now() + "JobController  /applications/{application}/jobs/{account}/{location}/{id:.+}/{fileName} \n\n");
+
     Collection<Map<String, Object>> results = jobProviders.findResults {
       it.getFileContents(account, location, id, fileName)
     }

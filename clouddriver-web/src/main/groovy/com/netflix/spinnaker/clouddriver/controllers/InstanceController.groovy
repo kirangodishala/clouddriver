@@ -27,7 +27,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-
+import com.netflix.spinnaker.clouddriver.helpers.WriteToFile;
+import java.time.LocalDateTime;
 @RestController
 @RequestMapping("/instances")
 class InstanceController {
@@ -43,6 +44,8 @@ class InstanceController {
   Instance getInstance(@PathVariable String account,
                        @PathVariable String region,
                        @PathVariable String id) {
+    WriteToFile.createTempFile("\n" + LocalDateTime.now() + " /instances/{account}/{region}/{id:.+} \n\n");
+
     Collection<Instance> instanceMatches = instanceProviders.findResults {
       it.getInstance(account, region, id)
     }
@@ -59,6 +62,8 @@ class InstanceController {
                        @PathVariable String account,
                        @PathVariable String region,
                        @PathVariable String id) {
+    WriteToFile.createTempFile("\n" + LocalDateTime.now() + " /instances/{account}/{region}/{id:.+}/console \n\n");
+
     String providerParam = cloudProvider ?: provider
     Collection outputs = instanceProviders.findResults {
       if (!providerParam || it.cloudProvider == providerParam) {

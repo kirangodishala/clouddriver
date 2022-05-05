@@ -39,7 +39,8 @@ import java.util.stream.Stream
 
 import static com.netflix.spinnaker.clouddriver.model.view.ModelObjectViewModelPostProcessor.applyExtensions
 import static com.netflix.spinnaker.clouddriver.model.view.ModelObjectViewModelPostProcessor.applyExtensionsToObject
-
+import com.netflix.spinnaker.clouddriver.helpers.WriteToFile;
+import java.time.LocalDateTime;
 @Slf4j
 @RestController
 class ServerGroupController {
@@ -71,6 +72,11 @@ class ServerGroupController {
                                           @PathVariable() String name,
                                           @RequestParam(required = false, value = "includeDetails", defaultValue = "true") String includeDetails
   ) {
+    StringBuilder builder=new StringBuilder("  /applications/"+ application+ "/serverGroups/"+ account + "/"+region+"/"+name + "-> ServerGroupController.getServerGroupByApplication() \n");
+    builder.append(getServerGroup(account, region, name, includeDetails));
+    builder.append("\n");
+    builder.append("/applications/" + application+ "/serverGroups/"+ account + "/"+region+"/"+name + " <<--\n");
+    WriteToFile.createTempFile(builder.toString().getBytes());
     return getServerGroup(account, region, name, includeDetails)
   }
 
@@ -82,6 +88,11 @@ class ServerGroupController {
                                       @PathVariable String region,
                                       @PathVariable String name,
                                       @RequestParam(required = false, value = "includeDetails", defaultValue = "true") String includeDetails) {
+    StringBuilder builder=new StringBuilder("  /serverGroups/"+ account + "/"+region+"/"+name + "-> ServerGroupController.getServerGroupByMoniker() \n");
+    builder.append(getServerGroup(account, region, name, includeDetails));
+    builder.append("\n");
+    builder.append("/serverGroups/"+ account + "/"+region+"/"+name + " <<--\n");
+    WriteToFile.createTempFile(builder.toString().getBytes());
     return getServerGroup(account, region, name, includeDetails)
   }
 
@@ -192,18 +203,35 @@ class ServerGroupController {
                     @RequestParam(required = false, value = "expand", defaultValue = "false") String expand,
                     @RequestParam(required = false, value = "cloudProvider") String cloudProvider,
                     @RequestParam(required = false, value = "clusters") List<String> clusters) {
+    StringBuilder builder=new StringBuilder("  /applications/"+ application + "/serverGroups -> ServerGroupController.list() \n");
 
     boolean isExpanded = Boolean.valueOf(expand)
 
     if (clusters != null && !clusters.isEmpty()) {
+      builder.append("response - buildSubsetForClusters(clusters, application, isExpanded):" + buildSubsetForClusters(clusters, application, isExpanded));
+      builder.append("\n");
+      builder.append("  /applications/"+ application + "/serverGroups <<--\n");
+      WriteToFile.createTempFile(builder.toString().getBytes());
       return buildSubsetForClusters(clusters, application, isExpanded)
     }
     if (clusters != null) {
+      builder.append("response: empty list");
+      builder.append("\n");
+      builder.append("  /applications/"+ application + "/serverGroups <<--\n");
+      WriteToFile.createTempFile(builder.toString().getBytes());
       return List.of()
     }
     if (isExpanded) {
+      builder.append("response - expandedList(application, cloudProvider):" + expandedList(application, cloudProvider));
+      builder.append("\n");
+      builder.append("  /applications/"+ application + "/serverGroups <<--\n");
+      WriteToFile.createTempFile(builder.toString().getBytes());
       return expandedList(application, cloudProvider)
     }
+    builder.append("response - summaryList(application, cloudProvider):" + summaryList(application, cloudProvider));
+    builder.append("\n");
+    builder.append("  /applications/"+ application + "/serverGroups <<--\n");
+    WriteToFile.createTempFile(builder.toString().getBytes());
     return summaryList(application, cloudProvider)
   }
 
@@ -215,6 +243,8 @@ class ServerGroupController {
     @RequestParam(required = false, value = "ids") List<String> ids,
     @RequestParam(required = false, value = "cloudProvider") String cloudProvider) {
 
+    StringBuilder builder=new StringBuilder("  /serverGroups -> ServerGroupController.getServerGroups() \n");
+
     boolean hasApplications = applications != null && !applications.isEmpty()
     boolean hasIds = ids != null && !ids.isEmpty()
     if ((hasApplications && hasIds) || (!hasApplications && !hasIds)) {
@@ -222,8 +252,16 @@ class ServerGroupController {
     }
 
     if (hasApplications) {
+      builder.append("response - getServerGroupsForApplications(applications, cloudProvider):" + getServerGroupsForApplications(applications, cloudProvider));
+      builder.append("\n");
+      builder.append("  /serverGroups <<--\n");
+      WriteToFile.createTempFile(builder.toString().getBytes());
       return getServerGroupsForApplications(applications, cloudProvider)
     } else {
+      builder.append("ids: " + ids)
+      builder.append("response - getServerGroupsForIds(ids):" + getServerGroupsForIds(ids));
+      builder.append("\n");
+      builder.append("  /serverGroups <<--\n");
       return getServerGroupsForIds(ids)
     }
   }

@@ -32,7 +32,8 @@ import org.springframework.web.bind.annotation.*
 
 import static com.netflix.spinnaker.clouddriver.model.view.ModelObjectViewModelPostProcessor.applyExtensions
 import static com.netflix.spinnaker.clouddriver.model.view.ModelObjectViewModelPostProcessor.applyExtensionsToObject
-
+import com.netflix.spinnaker.clouddriver.helpers.WriteToFile;
+import java.time.LocalDateTime;
 @Slf4j
 @RestController
 @RequestMapping("/applications/{application}/clusters")
@@ -63,6 +64,8 @@ class ClusterController {
   @PostAuthorize("@authorizationSupport.filterForAccounts(returnObject)")
   @RequestMapping(method = RequestMethod.GET)
   Map<String, Set<String>> listByAccount(@PathVariable String application) {
+    WriteToFile.createTempFile(" /applications/{application}/clusters -> ClusterController.listByAccount()\n");
+
     def apps = ((List<Application>) applicationProviders.findResults {
       it.getApplication(application)
     }).sort { a, b -> a.name.toLowerCase() <=> b.name.toLowerCase() }
@@ -81,6 +84,7 @@ class ClusterController {
   }
 
   private Map<String, Set<String>> mergeClusters(Application a, Application b) {
+    WriteToFile.createTempFile(" ClusterController.mergeClusters() \n");
     [a, b].inject([:]) { Map map, source ->
       for (Map.Entry e in source.clusterNames) {
         if (!map.containsKey(e.key)) {
@@ -95,6 +99,7 @@ class ClusterController {
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') && hasPermission(#account, 'ACCOUNT', 'READ')")
   @RequestMapping(value = "/{account:.+}", method = RequestMethod.GET)
   Set<ClusterViewModel> getForAccount(@PathVariable String application, @PathVariable String account) {
+    WriteToFile.createTempFile(" /applications/{application}/clusters/{account:.+} -> ClusterController\n");
     def clusters = clusterProviders.collect {
       Collection<Cluster> clusters = applyExtensions(clusterExtensions, it.getClusters(application, account, false))
       def clusterViews = []
@@ -125,6 +130,8 @@ class ClusterController {
                                     @PathVariable String account,
                                     @PathVariable String name,
                                     @RequestParam(required = false, value = 'expand', defaultValue = 'true') boolean expand) {
+    WriteToFile.createTempFile(" /applications/{application}/clusters/{account:.+}/{name:.+} -> ClusterController \n");
+
     def clusters = clusterProviders.collect { provider ->
         applyExtensionsToObject(clusterExtensions,
           requestQueue.execute(application, { provider.getCluster(application, account, name, expand) }))
@@ -144,6 +151,8 @@ class ClusterController {
                                       @PathVariable String name,
                                       @PathVariable String type,
                                       @RequestParam(required = false, value = 'expand', defaultValue = 'true') boolean expand) {
+    WriteToFile.createTempFile(" /applications/{application}/clusters/{account}/{name}/{type} -> ClusterController\n");
+
     Set<Cluster> allClusters = applyExtensions(clusterExtensions, getForAccountAndName(application, account, name, expand))
     def cluster = allClusters.find { it.type == type }
     if (!cluster) {
@@ -160,6 +169,8 @@ class ClusterController {
                                    @PathVariable String type,
                                    @RequestParam(value = "region", required = false) String region,
                                    @RequestParam(required = false, value = 'expand', defaultValue = 'true') boolean expand) {
+    WriteToFile.createTempFile(" /applications/{application}/clusters/{account:.+}/{clusterName:.+}/{type}/serverGroups -> ClusterController\n");
+
     Cluster cluster = applyExtensionsToObject(clusterExtensions, getForAccountAndNameAndType(application, account, clusterName, type, expand))
     def results = applyExtensions(serverGroupExtensions, region ? cluster.serverGroups.findAll { it.region == region } : cluster.serverGroups)
     results ?: []
@@ -173,6 +184,8 @@ class ClusterController {
                      @PathVariable String type,
                      @PathVariable String serverGroupName,
                      @RequestParam(value = "region", required = false) String region) {
+    WriteToFile.createTempFile(" /applications/{application}/clusters/{account:.+}/{clusterName:.+}/{type}/serverGroups/{serverGroupName:.+} -> ClusterController\n");
+
     // we can optimize loads iff the cloud provider supports loading minimal clusters (ie. w/o instances)
     def providers = clusterProviders.findAll { it.cloudProviderId == type }
     if (!providers) {
@@ -212,6 +225,8 @@ class ClusterController {
       @PathVariable String target,
       @RequestParam(value = "onlyEnabled", required = false, defaultValue = "false") String onlyEnabled,
       @RequestParam(value = "validateOldest", required = false, defaultValue = "true") String validateOldest) {
+    WriteToFile.createTempFile(" /applications/{application}/clusters/{account:.+}/{clusterName:.+}/{cloudProvider}/{scope}/serverGroups/target/{target:.+} -> ClusterController \n");
+
     TargetServerGroup tsg
     try {
       tsg = TargetServerGroup.fromString(target)
@@ -306,6 +321,8 @@ class ClusterController {
       @PathVariable String target,
       @PathVariable String summaryType,
       @RequestParam(value = "onlyEnabled", required = false, defaultValue = "false") String onlyEnabled) {
+    WriteToFile.createTempFile(" /applications/{application}/clusters/{account:.+}/{clusterName:.+}/{cloudProvider}/{scope}/serverGroups/target/{target:.+}/{summaryType:.+} -> ClusterController \n");
+
     ServerGroup sg = getTargetServerGroup(application,
         account,
         clusterName,

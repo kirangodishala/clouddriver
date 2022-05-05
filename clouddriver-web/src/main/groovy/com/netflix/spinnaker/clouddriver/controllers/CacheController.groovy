@@ -26,7 +26,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-
+import com.netflix.spinnaker.clouddriver.helpers.WriteToFile;
+import java.time.LocalDateTime;
 @RestController
 @RequestMapping("/cache")
 class CacheController {
@@ -38,6 +39,8 @@ class CacheController {
   ResponseEntity handleOnDemand(@PathVariable String cloudProvider,
                                 @PathVariable String type,
                                 @RequestBody Map<String, ? extends Object> data) {
+    StringBuilder builder= new StringBuilder("\n" + LocalDateTime.now() + "  /cache/"+ cloudProvider + "/" + type +" -> \n CacheController.handleOnDemand() \n");
+
     OnDemandType onDemandType = getOnDemandType(type);
 
     def onDemandCacheResult = onDemandCacheUpdaters.find {
@@ -46,7 +49,12 @@ class CacheController {
 
     def cacheStatus = onDemandCacheResult?.status
     def httpStatus = (cacheStatus == OnDemandCacheStatus.PENDING) ? HttpStatus.ACCEPTED : HttpStatus.OK
-
+    builder.append("\n")
+    builder.append(cachedIdentifiersByType: onDemandCacheResult?.cachedIdentifiersByType ?: [:])
+    builder.append("\n")
+    builder.append(httpStatus)
+    builder.append("  /cache/" + cloudProvider + "/" + type + " <<-- \n ");
+    WriteToFile.createTempFile(builder.toString().getBytes());
     return new ResponseEntity(
       [
         cachedIdentifiersByType: onDemandCacheResult?.cachedIdentifiersByType ?: [:]
@@ -58,6 +66,8 @@ class CacheController {
 
   @RequestMapping(method = RequestMethod.GET, value = "/introspection")
   Collection <AgentIntrospection> getAgentIntrospections() {
+    WriteToFile.createTempFile("\n" + LocalDateTime.now() + "  /introspection \n\n");
+
     return CacheIntrospectionStore.getStore().listAgentIntrospections()
         // sort by descending start time, so newest executions are first
         .toSorted { a, b -> b.getLastExecutionStartMs() <=> a.getLastExecutionStartMs() }
@@ -67,6 +77,7 @@ class CacheController {
   Collection<Map> pendingOnDemands(@PathVariable String cloudProvider,
                                    @PathVariable String type,
                                    @RequestParam(value = "id", required = false) String id) {
+    WriteToFile.createTempFile("\n" + LocalDateTime.now() + "  /{cloudProvider}/{type} \n\n");
     OnDemandType onDemandType = getOnDemandType(type)
     onDemandCacheUpdaters.findAll {
       it.handles(onDemandType, cloudProvider)
@@ -80,6 +91,8 @@ class CacheController {
   }
 
   static OnDemandType getOnDemandType(String type) {
+    WriteToFile.createTempFile("\n" + LocalDateTime.now() + "  CacheController.getOnDemandType() \n\n");
+
     try {
       return OnDemandType.fromString(type)
     } catch (IllegalArgumentException e) {

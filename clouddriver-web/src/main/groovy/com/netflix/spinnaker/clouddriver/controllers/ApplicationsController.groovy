@@ -32,7 +32,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
-
+import com.netflix.spinnaker.clouddriver.helpers.WriteToFile;
+import java.time.LocalDateTime;
 @Slf4j
 @RestController
 @RequestMapping("/applications")
@@ -55,6 +56,7 @@ class ApplicationsController {
   @RequestMapping(method = RequestMethod.GET)
   List<Application> list(@RequestParam(required = false, value = 'expand', defaultValue = 'true') boolean expand,
                          @RequestParam(required = false, value = 'restricted', defaultValue = 'true') boolean restricted) {
+    WriteToFile.createTempFile(" /applications  ->ApplicationsController.list() \n\n");
     def results = requestQueue.execute("applications", {
       applicationProviders.collectMany { it.getApplications(expand) ?: [] }
     })
@@ -65,6 +67,7 @@ class ApplicationsController {
   @PreAuthorize("hasPermission(#name, 'APPLICATION', 'READ')")
   @RequestMapping(value = "/{name:.+}", method = RequestMethod.GET)
   ApplicationViewModel get(@PathVariable String name) {
+    WriteToFile.createTempFile("\n" + LocalDateTime.now() + " /applications/{name} \n\n");
     try {
       def apps = requestQueue.execute(name, {
         applicationProviders.collect { it.getApplication(name) }
@@ -80,6 +83,7 @@ class ApplicationsController {
   }
 
   private ApplicationViewModel transform(List<Application> apps) {
+    WriteToFile.createTempFile("\n" + LocalDateTime.now() + " ApplicationsController.transform() \n\n");
     def attributes = [:]
     ApplicationViewModel result = null
     for (Application app in apps) {
