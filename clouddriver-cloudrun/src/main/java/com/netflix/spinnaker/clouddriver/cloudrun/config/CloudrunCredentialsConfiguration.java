@@ -55,24 +55,24 @@ public class CloudrunCredentialsConfiguration {
 
                     String jsonKey = configFileService.getContents(a.getJsonPath());
                     return new CloudrunNamedAccountCredentials.Builder()
-                        .name(a.getName())
-                        .environment(
+                        .setName(a.getName())
+                        .setEnvironment(
                             StringUtils.isEmpty(a.getEnvironment())
                                 ? a.getName()
                                 : a.getEnvironment())
-                        .accountType(
+                        .setAccountType(
                             StringUtils.isEmpty(a.getAccountType())
                                 ? a.getName()
                                 : a.getAccountType())
-                        .project(a.getProject())
-                        .jsonKey(jsonKey)
-                        .applicationName(clouddriverUserAgentApplicationName)
-                        .jsonPath(a.getJsonPath())
-                        .serviceAccountEmail(a.getServiceAccountEmail())
-                        .localRepositoryDirectory(a.getLocalRepositoryDirectory())
-                        .requiredGroupMembership(a.getRequiredGroupMembership())
-                        .permissions(a.getPermissions().build())
-                        .sshTrustUnknownHosts(a.isSshTrustUnknownHosts())
+                        .setProject(a.getProject())
+                        .setJsonKey(jsonKey)
+                        .setApplicationName(clouddriverUserAgentApplicationName)
+                        .setJsonPath(a.getJsonPath())
+                        .setServiceAccountEmail(a.getServiceAccountEmail())
+                        .setLocalRepositoryDirectory(a.getLocalRepositoryDirectory())
+                        .setRequiredGroupMembership(a.getRequiredGroupMembership())
+                        .setPermissions(a.getPermissions().build())
+                        .setSshTrustUnknownHosts(a.isSshTrustUnknownHosts())
                         .build(jobExecutor);
                   } catch (Exception e) {
                     log.info(

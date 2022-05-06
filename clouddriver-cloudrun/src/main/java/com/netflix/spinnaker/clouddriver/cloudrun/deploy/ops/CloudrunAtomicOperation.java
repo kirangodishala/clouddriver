@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 OpsMx Inc.
+ * Copyright 2022 OpsMx, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.netflix.spinnaker.clouddriver.cloudrun.deploy.ops;
 
-package com.netflix.spinnaker.clouddriver.cloudrun.deploy.exception
+import com.netflix.spectator.api.Registry;
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import groovy.transform.InheritConstructors
-
-@InheritConstructors
-class CloudrunDescriptionConversionException extends RuntimeException { }
+public abstract class CloudrunAtomicOperation<ResultType> implements AtomicOperation<ResultType> {
+  @Autowired Registry registry;
+}
