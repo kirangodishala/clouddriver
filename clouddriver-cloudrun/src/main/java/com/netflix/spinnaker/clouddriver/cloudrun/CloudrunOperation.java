@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cloudrun.deploy.description
+package com.netflix.spinnaker.clouddriver.cloudrun;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.security.resources.CredentialsNameable
-
-abstract class AbstractCloudrunCredentialsDescription implements CredentialsNameable {
-  String account
-  CloudrunNamedAccountCredentials credentials
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface CloudrunOperation {
+  String value();
 }

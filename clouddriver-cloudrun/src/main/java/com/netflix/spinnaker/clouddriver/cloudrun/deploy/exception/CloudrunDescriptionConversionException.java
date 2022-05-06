@@ -14,21 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cloudrun.deploy.description
+package com.netflix.spinnaker.clouddriver.cloudrun.deploy.exception;
 
-import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
-import com.netflix.spinnaker.kork.artifacts.model.Artifact
-import groovy.transform.AutoClone
-import groovy.transform.Canonical
+import groovy.transform.InheritConstructors;
 
-@AutoClone
-@Canonical
-class DeployCloudrunDescription extends AbstractCloudrunCredentialsDescription implements DeployDescription {
-  String accountName
-  String application
-  List<String> configFiles
-  Boolean promote
-  Boolean stopPreviousVersion
-  String applicationDirectoryRoot
-  Boolean suppressVersionString
-}
+@InheritConstructors
+public class CloudrunDescriptionConversionException extends RuntimeException {}
