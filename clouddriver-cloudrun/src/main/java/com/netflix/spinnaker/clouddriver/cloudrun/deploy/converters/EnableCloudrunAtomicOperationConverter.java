@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.cloudrun.deploy.converters;
 
 import com.netflix.spinnaker.clouddriver.cloudrun.CloudrunOperation;
 import com.netflix.spinnaker.clouddriver.cloudrun.deploy.description.EnableDisableCloudrunDescription;
-import com.netflix.spinnaker.clouddriver.cloudrun.deploy.ops.DisableCloudrunAtomicOperation;
+import com.netflix.spinnaker.clouddriver.cloudrun.deploy.ops.EnableCloudrunAtomicOperation;
 import com.netflix.spinnaker.clouddriver.cloudrun.security.CloudrunNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
@@ -26,13 +26,13 @@ import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCreden
 import java.util.Map;
 import org.springframework.stereotype.Component;
 
-@CloudrunOperation(AtomicOperations.DISABLE_SERVER_GROUP)
+@CloudrunOperation(AtomicOperations.ENABLE_SERVER_GROUP)
 @Component
-public class DisableCloudrunAtomicOperationConverter
+public class EnableCloudrunAtomicOperationConverter
     extends AbstractAtomicOperationsCredentialsConverter<CloudrunNamedAccountCredentials> {
 
   public AtomicOperation convertOperation(Map input) {
-    return new DisableCloudrunAtomicOperation(convertDescription(input));
+    return new EnableCloudrunAtomicOperation(convertDescription(input));
   }
 
   public EnableDisableCloudrunDescription convertDescription(Map input) {
