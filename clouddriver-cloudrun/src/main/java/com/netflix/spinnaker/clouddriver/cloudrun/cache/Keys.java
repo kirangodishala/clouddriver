@@ -115,28 +115,28 @@ public class Keys {
   }
 
   public static String getApplicationKey(String application) {
-    return "$CloudrunCloudProvider.ID:${Namespace.APPLICATIONS}:${application}";
+    return keyFor(Namespace.APPLICATIONS, application);
   }
 
   public static String getPlatformApplicationKey(String project) {
-    return "$CloudrunCloudProvider.ID:${Namespace.PLATFORM_APPLICATIONS}:${project}";
+    return keyFor(Namespace.PLATFORM_APPLICATIONS, project);
   }
 
   public static String getClusterKey(String account, String application, String clusterName) {
-    return "$CloudrunCloudProvider.ID:${Namespace.CLUSTERS}:${account}:${application}:${clusterName}";
+    return keyFor(Namespace.CLUSTERS, account, application, clusterName);
   }
 
   public static String getInstanceKey(String account, String instanceName) {
-    return "$CloudrunCloudProvider.ID:${Namespace.INSTANCES}:${account}:${instanceName}";
+    return keyFor(Namespace.INSTANCES, account, instanceName);
   }
 
   public static String getLoadBalancerKey(String account, String loadBalancerName) {
-    return "$CloudrunCloudProvider.ID:${Namespace.LOAD_BALANCERS}:${account}:${loadBalancerName}";
+    return keyFor(Namespace.LOAD_BALANCERS, account, loadBalancerName);
   }
 
   public static String getServerGroupKey(String account, String serverGroupName, String region) {
     Names names = Names.parseName(serverGroupName);
-    return "$CloudrunCloudProvider.ID:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}";
+    return keyFor(Namespace.SERVER_GROUPS, names.getCluster(), account, region, names.getGroup());
   }
 
   private static String keyFor(Namespace namespace, String... parts) {
