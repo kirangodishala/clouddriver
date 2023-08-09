@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
 
 @NonnullByDefault
@@ -61,12 +62,14 @@ public class GitRepoArtifactCredentials implements ArtifactCredentials {
     String repoUrl = artifact.getReference();
     String subPath = artifactSubPath(artifact);
     String branch = artifactVersion(artifact);
-    Path stagingPath = gitRepoFileSystem.getLocalClonePath(repoUrl, branch);
+    String pathDistinguisher = RandomStringUtils.random(5, true, true);
+    Path stagingPath = gitRepoFileSystem.getLocalClonePath(repoUrl, branch, pathDistinguisher);
     String repoBasename = getRepoBasename(repoUrl);
     Path outputFile = Paths.get(stagingPath.toString(), repoBasename + ".tgz");
 
     try {
-      return getLockedInputStream(repoUrl, subPath, branch, stagingPath, repoBasename, outputFile);
+      return getLockedInputStream(
+          repoUrl, subPath, branch, stagingPath, repoBasename, outputFile, pathDistinguisher);
     } catch (InterruptedException e) {
       throw new IOException(
           "Interrupted while waiting to acquire file system lock for "
@@ -85,10 +88,11 @@ public class GitRepoArtifactCredentials implements ArtifactCredentials {
       String branch,
       Path stagingPath,
       String repoBasename,
-      Path outputFile)
+      Path outputFile,
+      String pathDistinguisher)
       throws InterruptedException, IOException {
 
-    if (gitRepoFileSystem.tryTimedLock(repoUrl, branch)) {
+    if (gitRepoFileSystem.tryTimedLock(repoUrl, branch, pathDistinguisher)) {
       try {
         return getInputStream(repoUrl, subPath, branch, stagingPath, repoBasename, outputFile);
 
@@ -99,7 +103,7 @@ public class GitRepoArtifactCredentials implements ArtifactCredentials {
           log.debug("Deleting clone for {} (branch {})", repoUrl, branch);
           FileUtils.deleteDirectory(stagingPath.toFile());
         }
-        gitRepoFileSystem.unlock(repoUrl, branch);
+        gitRepoFileSystem.unlock(repoUrl, branch, pathDistinguisher);
       }
 
     } else {

@@ -24,9 +24,10 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException;
 import java.util.stream.Collectors;
-import javax.validation.constraints.NotNull;
+// import javax.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class AbstractAtomicOperationsCredentialsConverter<T extends AccountCredentials<?>>

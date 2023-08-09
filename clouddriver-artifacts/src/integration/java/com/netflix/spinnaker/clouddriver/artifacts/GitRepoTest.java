@@ -403,7 +403,9 @@ public class GitRepoTest {
     Path localClone =
         new GitRepoFileSystem(new GitRepoArtifactProviderProperties())
             .getLocalClonePath(
-                (String) artifact.get("reference"), (String) artifact.get("version"));
+                (String) artifact.get("reference"),
+                (String) artifact.get("version"),
+                "pathDistinguisher");
     if (localClone.toFile().exists()) {
       FileUtils.forceDelete(localClone.toFile());
     }

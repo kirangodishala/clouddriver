@@ -45,16 +45,17 @@ public class GitRepoFileSystem {
     this.config = properties;
   }
 
-  public Path getLocalClonePath(String repoUrl, String branch) {
-    return Paths.get(CLONES_HOME.toString(), hashCoordinates(repoUrl, branch));
+  public Path getLocalClonePath(String repoUrl, String branch, String pathDistinguisher) {
+    return Paths.get(CLONES_HOME.toString(), hashCoordinates(repoUrl, branch, pathDistinguisher));
   }
 
   public int getCloneWaitLockTimeoutSec() {
     return config.getCloneWaitLockTimeoutSec();
   }
 
-  public boolean tryTimedLock(String repoUrl, String branch) throws InterruptedException {
-    String hash = hashCoordinates(repoUrl, branch);
+  public boolean tryTimedLock(String repoUrl, String branch, String pathDistinguisher)
+      throws InterruptedException {
+    String hash = hashCoordinates(repoUrl, branch, pathDistinguisher);
 
     log.debug(
         "Trying filesystem timed lock for {} (branch {}), hash: {} for {} seconds",
@@ -91,8 +92,8 @@ public class GitRepoFileSystem {
     return locked;
   }
 
-  public void unlock(String repoUrl, String branch) {
-    String hash = hashCoordinates(repoUrl, branch);
+  public void unlock(String repoUrl, String branch, String pathDistinguisher) {
+    String hash = hashCoordinates(repoUrl, branch, pathDistinguisher);
     log.debug("Unlocking filesystem for {} (branch {}), hash: {}", repoUrl, branch, hash);
     unlock(hash);
   }
@@ -120,12 +121,13 @@ public class GitRepoFileSystem {
     return currentSize >= 0 && currentSize < config.getCloneRetentionMaxBytes();
   }
 
-  private String hashCoordinates(String repoUrl, String branch) {
+  private String hashCoordinates(String repoUrl, String branch, String pathDistinguisher) {
     String coordinates =
         String.format(
-            "%s-%s",
+            "%s-%s-%s",
             Optional.ofNullable(repoUrl).orElse("unknownUrl"),
-            Optional.ofNullable(branch).orElse("defaultBranch"));
+            Optional.ofNullable(branch).orElse("defaultBranch"),
+            Optional.ofNullable(pathDistinguisher).orElse("pathDistinguisher"));
     return Hashing.sha256().hashString(coordinates, Charset.defaultCharset()).toString();
   }
 

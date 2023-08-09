@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +60,11 @@ public class ArtifactController {
 
   // PUT because we need to send a body, which GET does not allow for spring/retrofit
   @RequestMapping(method = RequestMethod.PUT, value = "/fetch")
-  StreamingResponseBody fetch(@RequestBody Artifact artifact) {
+  StreamingResponseBody fetch(HttpServletRequest request, @RequestBody Artifact artifact) {
+    log.info(
+        "\n \n ********* request JSESSIONID={}, artifact subPath: {}",
+        request.getSession().getId(),
+        artifact.getLocation());
     if (artifact != null && artifact.getType().equals("front50/pipelineTemplate")) {
       log.info("**** Fetching pipelineTemplate : {}", artifact.getReference());
     }
