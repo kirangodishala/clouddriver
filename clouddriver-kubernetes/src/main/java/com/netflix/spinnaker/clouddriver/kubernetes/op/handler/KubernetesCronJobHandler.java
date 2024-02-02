@@ -28,8 +28,8 @@ import com.netflix.spinnaker.clouddriver.kubernetes.description.SpinnakerKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesKind;
 import com.netflix.spinnaker.clouddriver.kubernetes.description.manifest.KubernetesManifest;
 import com.netflix.spinnaker.clouddriver.kubernetes.model.Manifest.Status;
-import io.kubernetes.client.openapi.models.V2alpha1CronJob;
-import io.kubernetes.client.openapi.models.V2alpha1CronJobStatus;
+import io.kubernetes.client.openapi.models.V1beta1CronJob;
+import io.kubernetes.client.openapi.models.V1beta1CronJobStatus;
 import javax.annotation.Nonnull;
 import org.springframework.stereotype.Component;
 
@@ -76,9 +76,9 @@ public class KubernetesCronJobHandler extends KubernetesHandler
 
   @Override
   public Status status(KubernetesManifest manifest) {
-    V2alpha1CronJob v2alpha1CronJob =
-        KubernetesCacheDataConverter.getResource(manifest, V2alpha1CronJob.class);
-    return status(v2alpha1CronJob);
+    V1beta1CronJob v1beta1CronJob =
+        KubernetesCacheDataConverter.getResource(manifest, V1beta1CronJob.class);
+    return status(v1beta1CronJob);
   }
 
   @Override
@@ -86,8 +86,8 @@ public class KubernetesCronJobHandler extends KubernetesHandler
     return KubernetesCoreCachingAgent::new;
   }
 
-  private Status status(V2alpha1CronJob job) {
-    V2alpha1CronJobStatus status = job.getStatus();
+  private Status status(V1beta1CronJob job) {
+    V1beta1CronJobStatus status = job.getStatus();
     if (status == null) {
       return Status.noneReported();
     }
